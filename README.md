@@ -1,1 +1,2 @@
-# FlyingToolbox
+# Open-sourced materials for FlyingToolbox
+Upon the acceptance of this work, we will be delighted to open source the mechanical design and the code for task planning, trajectory generation, and visual sensing. Regarding the estimation and control related code, since this portion relies on specific hardware (PX4), we will open-source the code used for learning the downwash disturbance force model. 
