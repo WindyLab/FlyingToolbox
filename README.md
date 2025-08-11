@@ -93,7 +93,6 @@ We demonstrate the package installation using a Noetic/Ubuntu 20.04 environment 
      Additionally, this package requires OSQP as a dependency. For installation and usage instructions, please refer to: https://github.com/osqp/osqp.git.
    - Task planning:
      ```bash
-     sudo apt-get install ros-noetic-qt-build
      # Qt5 
      sudo apt-get install qtbase5-dev             
      sudo apt-get install libqt5widgets5-dev      
