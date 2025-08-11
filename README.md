@@ -128,7 +128,7 @@ The repository development version is tested on *Linux* operating systems. The d
 
 # Demo Execution
 
-### 1 Disturbance estimation
+### 1. Disturbance estimation
 
 - **disturbance_est**: This node can be directly used for disturbance estimation. Once the motion capture system publishes the position and attitude information of both the MAVs, the node will automatically calculate the magnitude of disturbance forces and moments during docking process.
 
@@ -173,7 +173,7 @@ The repository development version is tested on *Linux* operating systems. The d
 
   - Output: Publishes disturbance force and torque ground truth estimates to /disturbance_truth/force and /disturbance_truth/torque respectively.
 
-### 2 Visual sensing
+### 2. Visual sensing
 
 - **`test_realsense`**: This node is designed to capture real-time images from the camera and publish the image data as a ROS topic.
 
@@ -218,7 +218,7 @@ The repository development version is tested on *Linux* operating systems. The d
 
   <img src="images\fig_docking_with_visual_sensing.jpg" width="60%">
 
-### 3 Trajectory planning
+### 3. Trajectory planning
 
 Before running this package, you need task planning result.
 
@@ -232,7 +232,7 @@ Run the following code to launch the trajectory planning.
 ```
 
 
-### 4 Task planning
+### 4. Task planning
 
 Run the following code to launch the QT interface for task planning.
 ```bash
