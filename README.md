@@ -1,6 +1,7 @@
 <div align="center">
     <h1>Proximal cooperative aerial manipulation with vertically stacked drones</h1>
     <br>Huazi Cao, Jiahao Shen, Yin Zhang, Zheng Fu, Cunjia Liu, Sihao Sun</br>    
+    <br> </br>   
 </div>
 
 
