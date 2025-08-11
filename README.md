@@ -5,7 +5,7 @@
 	<a href="" target="_blank">Jiahao Shen</a>
 	<a href="https://oliviazhang1996.github.io " target="_blank">Yin Zhang</a>,
 	<a href="" target="_blank">Zheng Fu</a>,
-	<a href=" " target="_blank">Cunjia Liug</a>,
+	<a href=" " target="_blank">Cunjia Liu</a>,
 	<a href=" " target="_blank">Sihao Sun</a>,
 	<a href="https://shiyuzhao.westlake.edu.cn/Shiyu_Zhao.htm" target="_blank">Shiyu Zhao</a>,
     <p>
