@@ -18,9 +18,6 @@
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
   <depend>mavros_msgs</depend>
-  <!-- <build_export_depend>mavros_msgs</build_export_depend> -->
-  <!--<exec_depend>mavros_msgs</exec_depend> -->
-  
 
   <export>
 

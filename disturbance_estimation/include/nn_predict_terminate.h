@@ -4,8 +4,8 @@
 // government, commercial, or other organizational use.
 // File: nn_predict_terminate.h
 //
-// MATLAB Coder version            : 23.2
-// C/C++ source code generated on  : 23-May-2024 20:24:18
+// MATLAB Coder version            : 24.2
+// C/C++ source code generated on  : 2025-08-08 19:18:20
 //
 
 #ifndef NN_PREDICT_TERMINATE_H

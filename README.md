@@ -53,9 +53,10 @@ The correspondence between folder names and their contents is as follows:
 
 This repository requires only a computer with enough RAM to support the operations defined by a user. For minimal performance, this will be a computer with about 2 GB of RAM. Computers can be either personal computers (PCs) or onboard computing devices such as NUC and NX systems.  For optimal performance, we recommend a computer with the following specs:
 
-RAM: 8+ GB  
+- RAM: 8+ GB  
 
-CPU: 4+ cores, 1.7GHz/core
+- CPU: 4+ cores, 1.7GHz/core
+
 
 
 ### Software Requirements

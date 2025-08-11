@@ -4,8 +4,8 @@
 // government, commercial, or other organizational use.
 // File: addBiasApplyActivation.cpp
 //
-// MATLAB Coder version            : 23.2
-// C/C++ source code generated on  : 24-May-2024 14:17:44
+// MATLAB Coder version            : 24.2
+// C/C++ source code generated on  : 2025-08-08 19:18:20
 //
 
 // Include Files
@@ -21,7 +21,7 @@ namespace internal {
 namespace layer {
 void addBiasApplyActivation(float &X)
 {
-  X += 0.245346949F;
+  X += 0.0442096479F;
 }
 
 } // namespace layer

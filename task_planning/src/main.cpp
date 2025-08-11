@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     QApplication app(argc, argv);
     
     // Create and show main window
-    airbox_monitor::MainWindow w(argc, argv);
+    task_planning::MainWindow w(argc, argv);
     w.show();
     
     // Connect quit signal when last window is closed

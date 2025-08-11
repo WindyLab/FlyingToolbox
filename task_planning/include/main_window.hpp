@@ -10,8 +10,8 @@
  * 
  * @date November 2024
  **/
-#ifndef airbox_monitor_MAIN_WINDOW_H
-#define airbox_monitor_MAIN_WINDOW_H
+#ifndef task_planning_MAIN_WINDOW_H
+#define task_planning_MAIN_WINDOW_H
 
 /*****************************************************************************
 ** Includes
@@ -45,7 +45,7 @@
 #include "ui_main_window.h"
 #include "qnode.hpp"
 
-namespace airbox_monitor {
+namespace task_planning {
 
 class MainWindow : public QMainWindow {
 Q_OBJECT
@@ -97,6 +97,6 @@ private:
     void setupInitialUI();
 };
 
-}  // namespace airbox_monitor
+}  // namespace task_planning
 
-#endif // airbox_monitor_MAIN_WINDOW_H
+#endif // task_planning_MAIN_WINDOW_H

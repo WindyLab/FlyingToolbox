@@ -1,95 +1,50 @@
-# Aerial Vision Toolbox
+# visual sensing
 
-## Table of Contents
+### Hardware 
 
-1. [Overview](#overview)
-2. [System Requirements](#system-requirements)
-3. [Installation Guide](#installation-guide)
-4. [Demo Workflow](#demo-workflow)
-5. [Usage Instructions](#usage-instructions)
+This package must be used in conjunction with onboard cameras. We have successfully tested it with the following cameras: **Intel RealSense L515** and **D435i**.
 
-## Overview
+### Method
+The design of the onboard vision system involves six steps: three offline steps (QR code array design based ArUco https://www.2weima.com/aruco.html, camera calibration, and hand-eye calibration) and three online steps (QR code detection, 6D pose estimation, and filtering at 50 Hz).
 
-This toolbox is designed for aerial vision tasks, including camera calibration, real-time image processing, and relative position calculation between drones. It supports ROS (Noetic) and is optimized for NVIDIA Jetson platforms.
+<img src="images\fig_method.jpg" width="100%">
 
-## System Requirements
+### Description for the nodes
 
-- **Operating System**: Ubuntu 20.04 LTS
-- **Software Dependencies**: ROS (Noetic), CMake 3.16+, Eigen3, OpenCV 4.2+
-- **Hardware Requirements**: ROS-compatible drone platform, camera or visual sensor
-- **Tested Environments**: NVIDIA Jetson Xavier NX and Windows x64 platforms
-
-## Installation Guide
-
-1. Clone this repository to your local workspace:
-
-   ```bash
-   cd ~/catkin_ws/src
-   git clone https://github.com/your_repository/visual_sensing.git（需要修改）
-   ```
-2. Install dependencies:
-
-   - Ubuntu:
-     ```bash
-     sudo apt-get install ros-noetic-eigen-conversions
-     ```
-3. Build the project:
-
-   ```bash
-   catkin build
-   ```
-
-   **Estimated duration**: Approximately 5-15 minutes (depending on hardware performance).
-
-## Demo Workflow
-
-1. Start the ROS core (if using ROS):
-   ```bash
-   roscore
-   ```
-2. Launch the camera or visual sensor:
-   ```bash
-   rosrun visual_sensing test_realsense
-   ```
-3. Run the image processing program to calculate the relative position between the two drones:
-   ```bash
-   rosrun visual_sensing realsense
-   ```
-4. View the detection results:
-   - ROS environment:
-     ```bash
-     rostopic echo /tool_box_pos
-     ```
-   - Non-ROS environment: View the program output directly.
-     **Expected output**: Displays the toolbox's position, orientation, and the number of detected tools.
-     **Demo duration**: Approximately 2-5 minutes.
-
-## Usage Instructions
-
-1. **Process custom data**: Input camera data into the program or subscribe to the ROS topic `/tool_box_pos` to obtain toolbox information.
-2. **Reproduce paper results**: Run the detection program using the provided test dataset.
-3. **Customize tool IDs**: Modify the tool ID definitions in `toolbox.h` to match the actual toolbox tags.
-
-### Program Function Descriptions
-
-- **`test_realsense`**: Used to open the camera or visual sensor and publish image topics.
+- **`test_realsense`**: This node is designed to capture real-time images from the camera and publish the image data as a ROS topic.
 
   - Usage:
     ```bash
     rosrun visual_sensing test_realsense
     ```
   - Output: Publishes the image topic `/camera/realsense`.
-- **`cali_camera`**: Used for camera calibration to calculate the camera's position in the working drone's coordinate system.
+  
+- **`cali_camera`**: This node performs camera hand-eye calibration. It requires both a motion capture system and a specially designed calibration target (see diagram below).
+
+  <img src="images\fig_cail.jpg" width="60%">
+
+  Before running this node, it is necessary to first select the output poses of the manipulator MAV, calibration tool, and camera in the motion capture system. The corresponding topics are `/vicon/Turing/Turing`, `/vicon/ruler/ruler`, and `/vicon/realsense/realsense`, respectively. Note that when placing the `calibration tool`, its coordinate system must align with the toolbox MAV's coordinate system. Then, run the following program to generate the parameter file `calibration_trans_drone_cam.txt`.
 
   - Usage:
     ```bash
     rosrun visual_sensing cali_camera
     ```
-  - Output: Generates the calibration parameter file `camera_params.yaml`.
-- **`realsense`**: Used for actual docking to calculate the relative position between two drones.
+ 
+ - **`realsense`**: This node is used to obtain the relative distance information between the upper and lower MAVs.
+ 
 
+- **`realsense`**: This node is used to obtain the relative distance information between the upper and lower MAVs.
+
+  Before using this node, first check and modify the parameters in line 580 of the `realsense.cc` file to ensure the file exists and the path is correct. Copy the calibration results from the previous step into this file. After running `catkin build`, use the following command to perform relative position estimation between the two MAVs.
+  
   - Usage:
     ```bash
-    rosrun visual_sensing realsense
+    rosrun visual_sensing realsense -i x -f y
     ```
+  - **x**: Indicates the x-th hole, with possible values of 0, 1, 2, or 3. If not set, the default value is 1.
+  - **y**: Determines whether to save real-time images locally. If set to 0, no images are saved. If set to a non-zero value, images are saved to the path specified in line 379 of the `realsense.cc` file.
+  
   - Output: Publishes the relative position topic `/tool_box_pos`.
+  
+  <img src="images\fig_docking_with_visual_sensing.jpg" width="60%">
+

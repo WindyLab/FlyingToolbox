@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package>
-  <name>airbox_monitor</name>
+  <name>task_planning</name>
   <version>0.1.0</version>
   <description>
 
-     airbox_monitor
+     task_planning
 
   </description>
   <maintainer email="ahao@gmail.com">ahao</maintainer>

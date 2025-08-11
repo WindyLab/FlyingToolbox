@@ -1,6 +1,6 @@
 #include "../include/qnode.hpp"
 
-namespace airbox_monitor {
+namespace task_planning {
 
 namespace {
     // Static variables for storing current poses
@@ -34,7 +34,7 @@ void QNode::UAV2_pose_cb(const geometry_msgs::TransformStamped::ConstPtr &msg) {
 
 bool QNode::init() {
     // Initialize ROS node
-    ros::init(init_argc_, init_argv_, "airbox_monitor_node");
+    ros::init(init_argc_, init_argv_, "task_planning_node");
     if (!ros::master::check()) {
         return false;
     }
@@ -73,4 +73,4 @@ void QNode::run() {
     Q_EMIT rosShutdown();
 }
 
-}  // namespace airbox_monitor
+}  // namespace task_planning

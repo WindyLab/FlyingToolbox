@@ -1,156 +1,100 @@
-#include <ctime>
-#include <cstdlib>
 #include <chrono>
 #include <librealsense2/rs.hpp>
-#include <opencv2/opencv.hpp> 
+#include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <ros/ros.h>
 
-class TicToc {
-  public:
-    TicToc() {
-        tic();
+// Simple timer class for measuring frame processing time
+class Timer {
+public:
+    Timer() { start(); }
+    void start() { t0 = std::chrono::system_clock::now(); }
+    double elapsed() {
+        auto t1 = std::chrono::system_clock::now();
+        std::chrono::duration<double> d = t1 - t0;
+        return d.count() * 1000;
     }
- 
-    void tic() {
-        start = std::chrono::system_clock::now();
-    }
- 
-    double toc() {
-        end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        return elapsed_seconds.count() * 1000;
-    }
-  private:
-    std::chrono::time_point<std::chrono::system_clock> start, end;
+private:
+    std::chrono::time_point<std::chrono::system_clock> t0;
 };
 
-int main(int argc, char * argv[]) try
-{
-    // Declare depth colorizer for pretty visualization of depth data
-    rs2::colorizer color_map;
+int main(int argc, char* argv[]) try {
+    // Create RealSense colorizer for color frames
+    rs2::colorizer colorizer;
+    // Create RealSense pipeline
+    rs2::pipeline pipeline;
+    // Configure color stream parameters
+    rs2::config config;
+    config.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_RGB8, 60);
 
-    // Declare RealSense pipeline, encapsulating the actual device and sensors
-    rs2::pipeline pipe;
-    rs2::config cfg;
-    cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_RGB8, 60);
-    //cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_ANY,30);
+    // Start pipeline and get device
+    auto profile = pipeline.start(config);
+    auto device = profile.get_device();
+    auto sensor = device.first<rs2::color_sensor>();
 
-    rs2::pipeline_profile selection = pipe.start(cfg);
-    rs2::device selected_device = selection.get_device();
+    // Set camera parameters (exposure, brightness, contrast, gain)
+    if (sensor.supports(RS2_OPTION_EXPOSURE)) {
+        auto exp_range = sensor.get_option_range(RS2_OPTION_EXPOSURE);
+        sensor.set_option(RS2_OPTION_EXPOSURE, 30);
 
-    auto color_sensor = selected_device.first<rs2::color_sensor>();
+        auto bright_range = sensor.get_option_range(RS2_OPTION_BRIGHTNESS);
+        sensor.set_option(RS2_OPTION_BRIGHTNESS, 0);
 
-    if (color_sensor.supports(RS2_OPTION_EXPOSURE)) {
-        printf("color_sensor.supports(RS2_OPTION_EXPOSURE)\n");
-        auto range_exposure = color_sensor.get_option_range(RS2_OPTION_EXPOSURE); 
-        color_sensor.set_option(RS2_OPTION_EXPOSURE, 30);
+        auto contrast_range = sensor.get_option_range(RS2_OPTION_CONTRAST);
+        sensor.set_option(RS2_OPTION_CONTRAST, 100);
 
-        auto range_brightness = color_sensor.get_option_range(RS2_OPTION_BRIGHTNESS); 
-        color_sensor.set_option(RS2_OPTION_BRIGHTNESS,0);
+        auto gain_range = sensor.get_option_range(RS2_OPTION_GAIN);
+        sensor.set_option(RS2_OPTION_GAIN, gain_range.max);
 
-        auto range_contrast = color_sensor.get_option_range(RS2_OPTION_CONTRAST); 
-        color_sensor.set_option(RS2_OPTION_CONTRAST, 100); 
-
-        auto range_gain = color_sensor.get_option_range(RS2_OPTION_GAIN); 
-        color_sensor.set_option(RS2_OPTION_GAIN, 60);
-
-
-        printf("range_exposure %f %f %f %f\n",
-          range_exposure.min,
-          range_exposure.max,
-          range_exposure.def,
-          range_exposure.step);
-
-        printf("range_gain %f %f %f %f\n",
-          range_gain.min,
-          range_gain.max,
-          range_gain.def,
-          range_gain.step);
-        color_sensor.set_option(RS2_OPTION_GAIN, range_gain.max); 
-
-          printf("constrast %f %f %f %f\n",
-          range_contrast.min,
-          range_contrast.max,
-          range_contrast.def,
-          range_contrast.step);
-
-          printf("brightness %f %f %f %f\n",
-          range_brightness.min,
-          range_brightness.max,
-          range_brightness.def,
-          range_brightness.step);
-
-        // printf("%f\n",range.max);
-        // printf("%f\n",range.def);
-        // printf("%f\n",range.step);
-
-        // set minimal allowed exposure 
+        // Print parameter ranges
+        printf("Exposure: %f %f %f %f\n", exp_range.min, exp_range.max, exp_range.def, exp_range.step);
+        printf("Gain: %f %f %f %f\n", gain_range.min, gain_range.max, gain_range.def, gain_range.step);
+        printf("Contrast: %f %f %f %f\n", contrast_range.min, contrast_range.max, contrast_range.def, contrast_range.step);
+        printf("Brightness: %f %f %f %f\n", bright_range.min, bright_range.max, bright_range.def, bright_range.step);
     }
 
-    // Start streaming with default recommended configuration
-   // pipe.start(cfg);
+    // Initialize ROS node and create image publisher
+    ros::init(argc, argv, "rs_pub");
+    ros::NodeHandle node;
+    image_transport::ImageTransport img_trans(node);
+    auto color_pub = img_trans.advertise("camera/rs_color", 1);
 
+    // Main loop: capture, process, and publish color images
+    while (node.ok()) {
+        Timer t; // Start timer
+        auto frames = pipeline.wait_for_frames();
+        auto color_frame = frames.get_color_frame().apply_filter(colorizer);
+        auto stamp = ros::Time::now();
 
-    using namespace cv;
-    const auto window_name = "Display Image";
-   // namedWindow(window_name, WINDOW_AUTOSIZE);
+        int width = color_frame.as<rs2::video_frame>().get_width();
+        int height = color_frame.as<rs2::video_frame>().get_height();
 
-    ros::init(argc, argv, "realsense_publisher");
-    ros::NodeHandle nh;
-    image_transport::ImageTransport it(nh);
-    image_transport::Publisher pub = it.advertise("camera/realsense", 1);
-    image_transport::Publisher pub_depth = it.advertise("camera/realsense_depth", 1);
-    sensor_msgs::ImagePtr msg;
-    sensor_msgs::ImagePtr msg_depth;
+        // Convert RealSense frame to OpenCV image
+        cv::Mat color_img(cv::Size(width, height), CV_8UC3, (void*)color_frame.get_data());
+        cv::cvtColor(color_img, color_img, cv::COLOR_RGB2BGR);
 
-    while (nh.ok()) {
-        TicToc timer;
-        rs2::frameset data = pipe.wait_for_frames(); // Wait for next set of frames from the camera
-        rs2::frame color = data.get_color_frame().apply_filter(color_map);
-        //rs2::frame depth = data.get_depth_frame();
-        auto time_stamp = ros::Time::now();
+        // Convert to ROS image message and publish
+        auto ros_img = cv_bridge::CvImage(std_msgs::Header(), "bgr8", color_img).toImageMsg();
+        ros_img->header.stamp = stamp;
 
-        // Query frame size (width and height)
-        const int w = color.as<rs2::video_frame>().get_width();
-        const int h = color.as<rs2::video_frame>().get_height();
-       // const int w_depth = depth.as<rs2::video_frame>().get_width();
-       // const int h_depth = depth.as<rs2::video_frame>().get_height();
-       // std::cout << "depth height:" << h_depth << " width:" << w_depth << std::endl;
-
-        // Create OpenCV matrix of size (w,h) from the colorized depth data
-        Mat image(Size(w, h), CV_8UC3, (void*)color.get_data());
-      //  Mat depth_img(Size(w, h), CV_16UC1, (void*)depth.get_data());
-
-        cv::cvtColor(image,image,cv::COLOR_RGB2BGR);
-        msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toImageMsg();
-      //  msg_depth = cv_bridge::CvImage(std_msgs::Header(), "mono16", depth_img).toImageMsg();
-
-        msg->header.stamp = time_stamp;
-       // msg_depth->header.stamp = time_stamp;
-
-        pub.publish(msg);
-     //   pub_depth.publish(msg_depth);
+        color_pub.publish(ros_img);
 
         ros::spinOnce();
-        double t = timer.toc();
-        printf("current w %d h %d time for each frame%f ms\n",w,h,t);
-        cv::imwrite("0_color.png",image);
+        double ms = t.elapsed(); // Calculate processing time
+        printf("Frame: %dx%d, Time: %.2f ms\n", width, height, ms);
+
+        // Save current frame to local file
+        cv::imwrite("0_color.png", color_img);
     }
 
     return EXIT_SUCCESS;
 }
-catch (const rs2::error & e)
-{
-    std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << std::endl;
+catch (const rs2::error& e) {
+    std::cerr << "RealSense error: " << e.what() << std::endl;
     return EXIT_FAILURE;
 }
-catch (const std::exception& e)
-{
+catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;
     return EXIT_FAILURE;
 }
-
-
-

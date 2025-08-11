@@ -32,433 +32,197 @@
 #include "visual_sensing/toolbox.h"
 #include "log4z.h"
 
-class TicToc {
-  public:
-    TicToc() {
-        tic();
-    }
-    void tic() {
-        start = std::chrono::system_clock::now();
-    }
-    double toc() {
-        end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        return elapsed_seconds.count() * 1000;
-    }
-  private:
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-};
-
 class ImageConverter
 {
 public:
-  ros::NodeHandle nh_;
-  image_transport::ImageTransport it_;
-  image_transport::Subscriber image_sub_;
-  image_transport::Publisher image_pub_;
-  ros::Subscriber att_sub_;
-  ros::Subscriber pos_sub_;
-  int mode_;
+    ros::NodeHandle node_handle_;
+    image_transport::ImageTransport img_transport_;
+    image_transport::Subscriber img_sub_;
+    ros::Subscriber imu_sub_;
+    ros::Subscriber pose_sub_;
+    int detect_mode_;
 
-  ImageConverter(ros::NodeHandle& nh,
-                 std::map<int,cv::Mat>& rot_map,
-                 std::map<int,cv::Mat>& pos_map)
-    : nh_(nh),it_(nh_) {
-    // Subscribe image
-    image_sub_ = it_.subscribe("/camera/realsense", 1, &ImageConverter::imageCb, this);
+    ImageConverter(ros::NodeHandle& nh,
+                   std::map<int,cv::Mat>& rotation_map,
+                   std::map<int,cv::Mat>& position_map)
+        : node_handle_(nh), img_transport_(nh) {
+        img_sub_ = img_transport_.subscribe("/camera/realsense", 1, &ImageConverter::imageCallback, this);
+        imu_sub_ = nh.subscribe("/mavros/imu/data", 10, &ImageConverter::imuCallback, this);
+        pose_sub_ = nh.subscribe("/mavros/local_position/pose", 10, &ImageConverter::poseCallback, this);
 
-    //=============Subscribe drone attitude and position=========
-    att_sub_ = nh_.subscribe("/mavros/imu/data", 10, &ImageConverter::attCb,this);
-    pos_sub_ = nh_.subscribe("/mavros/local_position/pose", 10, &ImageConverter::posCb,this);
-    //============================================================
+        aruco_params_ = cv::aruco::DetectorParameters::create();
+        aruco_params_->maxMarkerPerimeterRate = 5.0;
+        aruco_params_->polygonalApproxAccuracyRate = 0.05;
+        aruco_dict_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
 
-    // Iinit aruco related values
-    detectorParams_ = new cv::aruco::DetectorParameters;
-    detectorParams_->maxMarkerPerimeterRate = 5.0;
-    detectorParams_->polygonalApproxAccuracyRate = 0.05;
-    dictionary_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+        camera_matrix_ = (cv::Mat_<float>(3,3) << 607.019, 0, 315.875, 0, 607.019, 248.763, 0, 0, 1);
+        distortion_coeffs_ = (cv::Mat_<float>(5,1) << 0.182874, -0.56215, -0.000804634, -0.00028305, 0.502297);
 
-    cameraMatrix_ = cv::Mat::eye(3,3,CV_32FC1);
-    distCoeffs_ = cv::Mat(5,1,CV_32FC1);
-    cameraMatrix_.at<float>(0,0) = 607.019;
-    cameraMatrix_.at<float>(1,1) = 607.019;
-    cameraMatrix_.at<float>(0,2) = 315.875;
-    cameraMatrix_.at<float>(1,2) = 248.763;
-    distCoeffs_.at<float>(0) = 0.182874;
-    distCoeffs_.at<float>(1) = -0.56215;
-    distCoeffs_.at<float>(2) = -0.000804634;
-    distCoeffs_.at<float>(3) = -0.00028305;
-    distCoeffs_.at<float>(4) = 0.502297;
-    
+        float marker_length = 0.029;
+        object_points_ = cv::Mat(4, 1, CV_32FC3);
+        object_points_.ptr<cv::Vec3f>(0)[0] = cv::Vec3f(-marker_length / 2.f, marker_length / 2.f, 0);
+        object_points_.ptr<cv::Vec3f>(0)[1] = cv::Vec3f(marker_length / 2.f, marker_length / 2.f, 0);
+        object_points_.ptr<cv::Vec3f>(0)[2] = cv::Vec3f(marker_length / 2.f, -marker_length / 2.f, 0);
+        object_points_.ptr<cv::Vec3f>(0)[3] = cv::Vec3f(-marker_length / 2.f, -marker_length / 2.f, 0);
 
-    float markerLength = 0.029;
-    objPoints_ = cv::Mat(4, 1, CV_32FC3);
-    objPoints_.ptr<cv::Vec3f>(0)[0] = cv::Vec3f(-markerLength / 2.f, markerLength / 2.f, 0);
-    objPoints_.ptr<cv::Vec3f>(0)[1] = cv::Vec3f(markerLength / 2.f, markerLength / 2.f, 0);
-    objPoints_.ptr<cv::Vec3f>(0)[2] = cv::Vec3f(markerLength / 2.f, -markerLength / 2.f, 0);
-    objPoints_.ptr<cv::Vec3f>(0)[3] = cv::Vec3f(-markerLength / 2.f, -markerLength / 2.f, 0);
-    rot_map_ = rot_map;
-    pos_map_ = pos_map;
-    // mode 0 -> localize toolbox
-    // mode 1 -> localize target
-    mode_ = 0;
-  }
-
-  ~ImageConverter(){
-
-  }
-
-  void imageCb(const sensor_msgs::ImageConstPtr& msg) {
-    cv_bridge::CvImagePtr cv_ptr;
-    try
-    {
-      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+        rotation_map_ = rotation_map;
+        position_map_ = position_map;
+        detect_mode_ = 0;
+        video_initialized_ = false;
     }
-    catch (cv_bridge::Exception& e)
-    {
-      ROS_ERROR("cv_bridge exception: %s", e.what());
-      return;
+
+    ~ImageConverter() {}
+
+    void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
+        try {
+            cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+            frame_ = cv_ptr->image;
+        } catch (cv_bridge::Exception& e) {
+            ROS_ERROR("cv_bridge exception: %s", e.what());
+        }
     }
-    float t = msg->header.stamp.toSec();
-    img_ = (cv_ptr->image);
-  }
 
-  void attCb(const sensor_msgs::Imu::ConstPtr& msg) {
-    Eigen::Quaterniond q_fcu = Eigen::Quaterniond(msg->orientation.w, 
-    msg->orientation.x,
-    msg->orientation.y,
-    msg->orientation.z);
-    rot_ = q_fcu.toRotationMatrix();
-    Eigen::Vector3d euler_fcu = quaternion_to_euler(q_fcu);
-    euler_fcu[1] = - euler_fcu[1];
-    euler_fcu[2] = - euler_fcu[2];
-    euler_to_rotation(euler_fcu,rotation_matrix_ned_);
-  }
+    void imuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
+        Eigen::Quaterniond q_imu(msg->orientation.w, msg->orientation.x, msg->orientation.y, msg->orientation.z);
+        rotation_matrix_ = q_imu.toRotationMatrix();
+        Eigen::Vector3d euler_imu = quaternion_to_euler(q_imu);
+        euler_imu[1] = -euler_imu[1];
+        euler_imu[2] = -euler_imu[2];
+        euler_to_rotation(euler_imu, ned_rotation_matrix_);
+    }
 
-  void posCb(const geometry_msgs::PoseStamped::ConstPtr& msg) {
-    translation_ = Eigen::Vector3d(msg->pose.position.x,
-                                msg->pose.position.y,
-                                msg->pose.position.z);
-  }
+    void poseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
+        translation_vec_ = Eigen::Vector3d(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z);
+    }
 
-  void body2world(Eigen::Vector3d& target_position,const tf::StampedTransform& turing, Eigen::Vector3d& p_in_viconworld) {
-    Eigen::Quaterniond q = Eigen::Quaterniond(turing.getRotation().w(), 
-                    turing.getRotation().x(),
-                    turing.getRotation().y(),
-                    turing.getRotation().z());
+    void body2world(const Eigen::Vector3d& target_position, const tf::StampedTransform& turing, Eigen::Vector3d& world_position) {
+        Eigen::Quaterniond q(turing.getRotation().w(), turing.getRotation().x(), turing.getRotation().y(), turing.getRotation().z());
+        Eigen::Vector3d p(turing.getOrigin().x(), turing.getOrigin().y(), turing.getOrigin().z());
+        Eigen::Matrix3d q_rot = q.toRotationMatrix();
+        world_position = q_rot * target_position + p;
+    }
 
-    Eigen::Vector3d p(turing.getOrigin().x(),turing.getOrigin().y(),turing.getOrigin().z());
-    Eigen::Matrix3d q_rot = q.toRotationMatrix();
-    p_in_viconworld = q_rot * target_position + p;
-  }
+    void world2body(const Eigen::Vector3d& world_position, Eigen::Vector3d& body_position) {
+        Eigen::Matrix3d delta = Eigen::Matrix3d::Identity();
+        delta(1,1) = -1;
+        delta(2,2) = -1;
+        body_position = ned_rotation_matrix_.transpose() * (delta * (world_position - translation_vec_));
+    }
 
-  void world2body(Eigen::Vector3d& p_in_world,
-                  Eigen::Vector3d& p_in_body) {
-    Eigen::Matrix3d delta_drone = Eigen::Matrix3d::Identity(3,3);
-    delta_drone(1,1) = -1;
-    delta_drone(2,2) = -1;
-    p_in_body = rotation_matrix_ned_.transpose() * (delta_drone * (p_in_world - translation_));
-  }
-
-  void init_pts3d_toolbox() {
-    std::map<int,std::vector<cv::Point3f>> pts3d_map =
-        {   {0,
-                {
-                    cv::Point3f(-14.5, 14.5,   0),
-                    cv::Point3f(14.5,  14.5,   0),
-                    cv::Point3f(14.5,  -14.5,   0),
-                    cv::Point3f(-14.5, -14.5,   0)
-
-                }
-            },
-            {1,
-                {
-                    cv::Point3f(118.0, 14.5,    0),
-                    cv::Point3f(147.0, 14.5,    0),
-                    cv::Point3f(147.0, -14.5,   0),
-                    cv::Point3f(118.0, -14.5,   0)
-
-                }
-            },
-            {2,
-                {
-                    cv::Point3f(-14.5, -118.0,   0),
-                    cv::Point3f(14.5,  -118.0,   0),
-                    cv::Point3f(14.5,  -147.0,   0),
-                    cv::Point3f(-14.5, -147.0,   0)
-                }
-            },
-            {3,
-                {
-                    cv::Point3f(-147.0, 14.5,   0),
-                    cv::Point3f(-118.0, 14.5,   0),
-                    cv::Point3f(-118.0, -14.5,  0),
-                    cv::Point3f(-147.0, -14.5,  0)
-                }
-            },
-            {4,
-                {
-                    cv::Point3f(-14.5, 147.0,  0),
-                    cv::Point3f(14.5,  147.0,   0),
-                    cv::Point3f(14.5,  118.0,   0),
-                    cv::Point3f(-14.5, 118.0,  0)
-                }
-            },
-            {5,
-                {
-                    cv::Point3f(60.75, 175.0,  0),
-                    cv::Point3f(86.75, 175.0,   0),
-                    cv::Point3f(86.75, 149.0,   0),
-                    cv::Point3f(60.75, 149.0,  0)
-                }
-            },
-            {6,
-                {
-                    cv::Point3f(149.0, 86.75,  0),
-                    cv::Point3f(175.0, 86.75,   0),
-                    cv::Point3f(175.0, 60.75,   0),
-                    cv::Point3f(149.0, 60.75,  0)
-                }
-            },
-            {7,
-                {
-                    cv::Point3f(149.0, -60.75,  0),
-                    cv::Point3f(175.0, -60.75,   0),
-                    cv::Point3f(175.0, -86.75,   0),
-                    cv::Point3f(149.0, -86.75,  0)
-                }
-            },
-            {8,
-                {
-                    cv::Point3f(60.75, -149.0,  0),
-                    cv::Point3f(86.75, -149.0,   0),
-                    cv::Point3f(86.75, -175.0,   0),
-                    cv::Point3f(60.75, -175.0,  0)
-                }
-            },
-            {9,
-                {
-                    cv::Point3f(-86.75, -149.0,  0),
-                    cv::Point3f(-60.75, -149.0,   0),
-                    cv::Point3f(-60.75, -175.0,   0),
-                    cv::Point3f(-86.75, -175.0,  0)
-                }
-            },
-            {10,
-                {
-                    cv::Point3f(-175.0, -60.75,  0),
-                    cv::Point3f(-149.0, -60.75,   0),
-                    cv::Point3f(-149.0, -86.75,   0),
-                    cv::Point3f(-175.0, -86.75,  0)
-                }
-            },
-            {11,
-                {
-                    cv::Point3f(-175.0, 86.75,  0),
-                    cv::Point3f(-149.0, 86.75,   0),
-                    cv::Point3f(-149.0, 60.75,   0),
-                    cv::Point3f(-175.0, 60.75,  0)
-                }
-            },
-            {12,
-                {
-                    cv::Point3f(-86.75, 175.0,  0),
-                    cv::Point3f(-60.75, 175.0,   0),
-                    cv::Point3f(-60.75, 149.0,   0),
-                    cv::Point3f(-86.75, 149.0,  0)
-                }
-            },
-            {13,
-                {
-                    cv::Point3f(126.5, 146.5,  0),
-                    cv::Point3f(146.5, 146.5,   0),
-                    cv::Point3f(146.5, 126.5,   0),
-                    cv::Point3f(126.5, 126.5,  0)
-                }
-            },
-            {14,
-                {
-                    cv::Point3f(126.5, -126.5,  0),
-                    cv::Point3f(146.5, -126.5,   0),
-                    cv::Point3f(146.5, -146.5,   0),
-                    cv::Point3f(126.5, -146.5,  0)
-                }
-            },
-            {15,
-                {
-                    cv::Point3f(-146.5, -126.5,  0),
-                    cv::Point3f(-126.5, -126.5,   0),
-                    cv::Point3f(-126.5, -146.5,   0),
-                    cv::Point3f(-146.5, -146.5,  0)
-                }
-            },
-            {16,
-                {
-                    cv::Point3f(-146.5, 146.5,  0),
-                    cv::Point3f(-126.5, 146.5,   0),
-                    cv::Point3f(-126.5, 126.5,   0),
-                    cv::Point3f(-146.5, 126.5,  0)
-                }
-            }
+    void init_pts3d_toolbox() {
+        std::map<int,std::vector<cv::Point3f>> marker3d_map = {
+            {0, {cv::Point3f(-14.5, 14.5, 0), cv::Point3f(14.5, 14.5, 0), cv::Point3f(14.5, -14.5, 0), cv::Point3f(-14.5, -14.5, 0)}},
+            {1, {cv::Point3f(118.0, 14.5, 0), cv::Point3f(147.0, 14.5, 0), cv::Point3f(147.0, -14.5, 0), cv::Point3f(118.0, -14.5, 0)}},
+            {2, {cv::Point3f(-14.5, -118.0, 0), cv::Point3f(14.5, -118.0, 0), cv::Point3f(14.5, -147.0, 0), cv::Point3f(-14.5, -147.0, 0)}},
+            {3, {cv::Point3f(-147.0, 14.5, 0), cv::Point3f(-118.0, 14.5, 0), cv::Point3f(-118.0, -14.5, 0), cv::Point3f(-147.0, -14.5, 0)}},
+            {4, {cv::Point3f(-14.5, 147.0, 0), cv::Point3f(14.5, 147.0, 0), cv::Point3f(14.5, 118.0, 0), cv::Point3f(-14.5, 118.0, 0)}},
+            {5, {cv::Point3f(60.75, 175.0, 0), cv::Point3f(86.75, 175.0, 0), cv::Point3f(86.75, 149.0, 0), cv::Point3f(60.75, 149.0, 0)}},
+            {6, {cv::Point3f(149.0, 86.75, 0), cv::Point3f(175.0, 86.75, 0), cv::Point3f(175.0, 60.75, 0), cv::Point3f(149.0, 60.75, 0)}},
+            {7, {cv::Point3f(149.0, -60.75, 0), cv::Point3f(175.0, -60.75, 0), cv::Point3f(175.0, -86.75, 0), cv::Point3f(149.0, -86.75, 0)}},
+            {8, {cv::Point3f(60.75, -149.0, 0), cv::Point3f(86.75, -149.0, 0), cv::Point3f(86.75, -175.0, 0), cv::Point3f(60.75, -175.0, 0)}},
+            {9, {cv::Point3f(-86.75, -149.0, 0), cv::Point3f(-60.75, -149.0, 0), cv::Point3f(-60.75, -175.0, 0), cv::Point3f(-86.75, -175.0, 0)}},
+            {10, {cv::Point3f(-175.0, -60.75, 0), cv::Point3f(-149.0, -60.75, 0), cv::Point3f(-149.0, -86.75, 0), cv::Point3f(-175.0, -86.75, 0)}},
+            {11, {cv::Point3f(-175.0, 86.75, 0), cv::Point3f(-149.0, 86.75, 0), cv::Point3f(-149.0, 60.75, 0), cv::Point3f(-175.0, 60.75, 0)}},
+            {12, {cv::Point3f(-86.75, 175.0, 0), cv::Point3f(-60.75, 175.0, 0), cv::Point3f(-60.75, 149.0, 0), cv::Point3f(-86.75, 149.0, 0)}},
+            {13, {cv::Point3f(126.5, 146.5, 0), cv::Point3f(146.5, 146.5, 0), cv::Point3f(146.5, 126.5, 0), cv::Point3f(126.5, 126.5, 0)}},
+            {14, {cv::Point3f(126.5, -126.5, 0), cv::Point3f(146.5, -126.5, 0), cv::Point3f(146.5, -146.5, 0), cv::Point3f(126.5, -146.5, 0)}},
+            {15, {cv::Point3f(-146.5, -126.5, 0), cv::Point3f(-126.5, -126.5, 0), cv::Point3f(-126.5, -146.5, 0), cv::Point3f(-146.5, -146.5, 0)}},
+            {16, {cv::Point3f(-146.5, 146.5, 0), cv::Point3f(-126.5, 146.5, 0), cv::Point3f(-126.5, 126.5, 0), cv::Point3f(-146.5, 126.5, 0)}}
         };
-        pts3d_map_ = pts3d_map;
-  }
+        marker3d_map_ = marker3d_map;
+    }
 
-  bool solve_pose_all(cv::Mat& rvec,cv::Mat& tvec,ros::Time& time_stamp,
-  int& num_of_detection,bool draw_frames = false) {
-        if(img_.empty()) {
-            printf("img is empty!\n");
+    bool solve_pose_all(cv::Mat& rvec, cv::Mat& tvec, ros::Time& time_stamp, int& detection_count, bool save_frames = false) {
+        if (frame_.empty()) {
+            printf("Frame is empty!\n");
             return false;
         }
-        cv::Mat filtered = img_.clone();
-        cv::Mat filtered_gray; 
-        cv::cvtColor(filtered,filtered_gray,cv::COLOR_BGR2GRAY);
+        cv::Mat frame_gray;
+        cv::cvtColor(frame_, frame_gray, cv::COLOR_BGR2GRAY);
 
         time_stamp = ros::Time::now();
         std::vector<int> ids;
-        std::vector<std::vector<cv::Point2f>> corners,rejectedCandidates;
-        cv::aruco::detectMarkers(filtered_gray, dictionary_, corners, ids,
-        detectorParams_,rejectedCandidates);
-        std::vector<cv::Mat> r_tag_vec;
-        bool flag_solved = false;
-        int size_of_useful_tag = 0;
-        if (ids.size() > 0) {
-            int nMarkers = static_cast<int>(corners.size());
-            std::vector<cv::Point2f> pts2d;
-            std::vector<cv::Point3f> pts3d;
-            std::map<int,std::vector<cv::Point2f>> pts2d_map;
-            for (int i = 0; i < nMarkers; i++) {
+        std::vector<std::vector<cv::Point2f>> corners, rejected;
+        cv::aruco::detectMarkers(frame_gray, aruco_dict_, corners, ids, aruco_params_, rejected);
 
+        bool pose_found = false;
+        int valid_tag_count = 0;
+        std::vector<cv::Point2f> pts2d;
+        std::vector<cv::Point3f> pts3d;
+
+        if (!ids.empty()) {
+            for (size_t i = 0; i < corners.size(); ++i) {
                 if (ids[i] > 16) {
-                    mode_ = 1; // detect target
-                } else if (ids[i] <= 16) {
-                    mode_ = 0;  //detect tool
-                    for(size_t k  = 0; k < 4; k++) {
-                    pts2d.push_back(corners.at(i)[k]);
-                    }
-
-                    auto map_iter = pts3d_map_.find(ids[i]);
-                    for(size_t k = 0; k < map_iter->second.size(); k++) {
-                        pts3d.push_back(map_iter->second[k]);
-                    }
+                    detect_mode_ = 1;
+                } else {
+                    detect_mode_ = 0;
+                    pts2d.insert(pts2d.end(), corners[i].begin(), corners[i].end());
+                    auto map_iter = marker3d_map_.find(ids[i]);
+                    pts3d.insert(pts3d.end(), map_iter->second.begin(), map_iter->second.end());
                 }
             }
-            size_of_useful_tag = static_cast<int>(pts2d.size())/4;
-            if (pts2d.empty()) {
-                printf("no valid points detected!\n");
-                // return false;
-            }
-            else
-            {
-                cv::solvePnP(pts3d, pts2d,cameraMatrix_, distCoeffs_, rvec, tvec,false,cv::SOLVEPNP_ITERATIVE);
-                flag_solved = true;
+            valid_tag_count = static_cast<int>(pts2d.size()) / 4;
+            if (!pts2d.empty()) {
+                cv::solvePnP(pts3d, pts2d, camera_matrix_, distortion_coeffs_, rvec, tvec, false, cv::SOLVEPNP_ITERATIVE);
+                pose_found = true;
             }
         }
         tvec = tvec / 1000;
-        num_of_detection = size_of_useful_tag;
-        if(draw_frames) {
-            if (ids.size() > 0) {
-                cv::aruco::drawAxis(filtered, cameraMatrix_, distCoeffs_, rvec, tvec, 0.03);
-                cv::aruco::drawDetectedMarkers(filtered, corners, ids);
+        detection_count = valid_tag_count;
+
+        if (save_frames && !ids.empty()) {
+            cv::aruco::drawAxis(frame_, camera_matrix_, distortion_coeffs_, rvec, tvec, 0.03);
+            cv::aruco::drawDetectedMarkers(frame_, corners, ids);
+
+            cv_bridge::CvImagePtr cv_ptr = boost::make_shared<cv_bridge::CvImage>();
+            cv_ptr->header.stamp = ros::Time::now();   
+            cv_ptr->encoding = sensor_msgs::image_encodings::BGR8;
+            cv_ptr->image = frame_;
+
+            if (!video_initialized_) {
+                int width = cv_ptr->image.cols;
+                int height = cv_ptr->image.rows;
+                std::string date_str = getDateTimeString();
+                std::string video_path = "/home/nuc/waypoint_ws/logs/output_video_aft_" + date_str + ".mp4";
+                video_writer_.open(video_path, cv::VideoWriter::fourcc('H', '2', '6', '4'), 60, cv::Size(width, height));
+                video_initialized_ = true;
             }
-
-            printf("save image!\n");
-
-            cv_bridge::CvImagePtr cv_ptr_aft = boost::make_shared<cv_bridge::CvImage>();
-
-            cv_ptr_aft->header.stamp = ros::Time::now();   
-            cv_ptr_aft->encoding = sensor_msgs::image_encodings::BGR8;
-            cv_ptr_aft->image = filtered;
-
-            if (!is_initialized_aft_)
-            {
-                int width = cv_ptr_aft->image.cols;
-                int height = cv_ptr_aft->image.rows;
-
-                std::string dateTimeString = getCurrentDateTimeString();
-                std::string videoPath = "/home/nuc/waypoint_ws/logs/output_video_aft_" + dateTimeString + ".mp4";
-
-                video_writer_aft_.open(videoPath, cv::VideoWriter::fourcc('H', '2', '6', '4'), 60, cv::Size(width, height));
-                is_initialized_aft_ = true;
+            if (video_writer_.isOpened()) {
+                video_writer_.write(cv_ptr->image);
             }
-
-            if (video_writer_aft_.isOpened())
-            {
-            video_writer_aft_.write(cv_ptr_aft->image);
-            }
-
         }
-        if (ids.size() > 0 && flag_solved) {
-            return true;
-        } else {
-            return false;
-        }
-  }
+        return (!ids.empty() && pose_found);
+    }
 
-  void get_rotation_matrix(Eigen::Matrix3d& Rotation_body_2_world)
-  {
-    Rotation_body_2_world = rotation_matrix_ned_;
-  }
+    void get_rotation_matrix(Eigen::Matrix3d& body_to_world_rot) {
+        body_to_world_rot = ned_rotation_matrix_;
+    }
 
-  std::string getCurrentDateTimeString()
-  {
-      std::time_t now = std::time(nullptr);
+    std::string getDateTimeString() {
+        std::time_t now = std::time(nullptr);
+        std::tm* now_tm = std::localtime(&now);
+        std::stringstream ss;
+        ss << std::put_time(now_tm, "%m-%d_%H-%M");
+        return ss.str();
+    }
 
-      std::tm* now_tm = std::localtime(&now);
-      std::stringstream ss;
-      ss << std::put_time(now_tm, "%m-%d_%H-%M");
-
-      return ss.str();
-  }
-
-  private:
-    cv::Mat img_;
-    cv::Ptr<cv::aruco::DetectorParameters> detectorParams_;
-    cv::Ptr<cv::aruco::Dictionary> dictionary_;
-    cv::Mat cameraMatrix_;
-    cv::Mat distCoeffs_;
-    cv::Mat objPoints_;
-    std::map<int,cv::Mat> rot_map_;
-    std::map<int,cv::Mat> pos_map_;
-    const std::string window_name_ = "VIEW";
-    tf::Transform body_in_viconworld_;
-    Eigen::Matrix3d rot_;
-    Eigen::Matrix3d rotation_matrix_ned_;
-    Eigen::Vector3d translation_;
-    std::map<int,std::vector<cv::Point3f>> pts3d_map_;
-
-    bool is_initialized_aft_ = false;
-    cv::VideoWriter video_writer_aft_;
+private:
+    cv::Mat frame_;
+    cv::Ptr<cv::aruco::DetectorParameters> aruco_params_;
+    cv::Ptr<cv::aruco::Dictionary> aruco_dict_;
+    cv::Mat camera_matrix_;
+    cv::Mat distortion_coeffs_;
+    cv::Mat object_points_;
+    std::map<int,cv::Mat> rotation_map_;
+    std::map<int,cv::Mat> position_map_;
+    Eigen::Matrix3d rotation_matrix_;
+    Eigen::Matrix3d ned_rotation_matrix_;
+    Eigen::Vector3d translation_vec_;
+    std::map<int,std::vector<cv::Point3f>> marker3d_map_;
+    bool video_initialized_;
+    cv::VideoWriter video_writer_;
 };
 
-void read_tag_extrinsics(
-    const std::string& file,
-    std::map<int,cv::Mat>& rot_map,
-    std::map<int,cv::Mat>& pos_map) {
-    std::ifstream ifs(file);
-    if(!ifs.good()) {
-        std::cerr << "ifstream open file error!\n";
-        return;
-    }
-    std::string line;
-    std::vector<std::string> lines;
-    std::cout << "start to get line\n";
-    while(getline(ifs, line)) {
-        std::stringstream ss;
-        ss << line;
-        int tag_id = 0;
-        cv::Mat rvec(3,1,CV_32FC1);
-        cv::Mat tvec(3,1,CV_32FC1);
-
-        ss >> tag_id >> rvec.at<float>(0) >> rvec.at<float>(1) >> rvec.at<float>(2) 
-        >> tvec.at<float>(0) >> tvec.at<float>(1) >> tvec.at<float>(2);
-        rot_map.insert(std::make_pair(tag_id,rvec));
-        pos_map.insert(std::make_pair(tag_id,tvec));
-        //std::cout << line << std::endl;
-        std::cout << tag_id << " " << rvec << " " << tvec << std::endl;
-    }
-    ifs.close();
-}
 
 void read_camera_in_drone(const std::string& file, tf::Transform& trans_drone_cam) {
     std::ifstream ifs(file);
@@ -484,21 +248,6 @@ void read_camera_in_drone(const std::string& file, tf::Transform& trans_drone_ca
     ifs.close();
 }
 
-tf::Vector3 compute_target_in_vicon(const cv::Mat& rvec, const cv::Mat& tvec,
-const tf::Transform& trans_drone_cam,
-const tf::StampedTransform& trans_world_viconobj) {
-    cv::Mat r_mat(3,3,CV_64FC1);
-    cv::Rodrigues(rvec, r_mat);
-
-    tf::Matrix3x3 rot_cam_tool(r_mat.at<float>(0, 0), r_mat.at<float>(0, 1), r_mat.at<float>(0, 2),
-                        r_mat.at<float>(1, 0), r_mat.at<float>(1, 1), r_mat.at<float>(1, 2),
-                        r_mat.at<float>(2, 0), r_mat.at<float>(2, 1), r_mat.at<float>(2, 2));
-    tf::Transform trans_cam_tool(rot_cam_tool, tf::Vector3(tvec.at<float>(0),tvec.at<float>(1),tvec.at<float>(2)));
-    tf::Transform trans_viconworld_tool =  trans_world_viconobj * trans_drone_cam * trans_cam_tool;
-    tf::Vector3 target_vec(0.065,-0.065,0);
-    return trans_viconworld_tool * target_vec;
-}
-
 tf::Transform compute_target_in_drone(const cv::Mat& r_mat, const cv::Mat& tvec,
 const tf::Transform& trans_drone_cam) {
     tf::Matrix3x3 rot_cam_target(r_mat.at<float>(0, 0), r_mat.at<float>(0, 1), r_mat.at<float>(0, 2),
@@ -510,16 +259,6 @@ const tf::Transform& trans_drone_cam) {
     return trans_drone_target;
 }
  
-tf::Vector3 compute_delta_arm_command (const tf::Vector3& target_in_vicon,
-const tf::Matrix3x3& r_base_in_vicon_world,const tf::Vector3& t_base_in_vicon_world) {
-    tf::Transform trans_vicon_base(r_base_in_vicon_world, 
-    tf::Vector3(t_base_in_vicon_world.x(),
-                t_base_in_vicon_world.y(),
-                t_base_in_vicon_world.z()));
-    auto trans_base_vicon = trans_vicon_base.inverse();
-    tf::Vector3 target_in_base = trans_base_vicon * target_in_vicon;
-    return target_in_base;
-}
 
 class ResultPose {
     public:

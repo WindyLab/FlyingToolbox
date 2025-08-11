@@ -1,6 +1,6 @@
 #include "../include/main_window.hpp"
 
-namespace airbox_monitor {
+namespace task_planning {
 
 using namespace Qt;
 
@@ -581,4 +581,4 @@ void MainWindow::generateYamlFile()
 }
 
 
-}  // namespace airbox_monitor
+}  // namespace task_planning

@@ -1,15 +1,8 @@
-#include <ctime>
-#include <cstdlib>
 #include <chrono>
-#include <opencv2/opencv.hpp> 
-//#include <opencv2/objdetect/aruco_detector.hpp>
-#include <opencv2/aruco.hpp> 
-
-#include <fstream>
 #include <ctime>
-#include <cstdlib>
+#include <opencv2/opencv.hpp>
+#include <opencv2/aruco.hpp>
 #include <fstream>
-#include <chrono>
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -17,481 +10,275 @@
 #include <tf2/LinearMath/Transform.h>
 #include <tf2/LinearMath/Vector3.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_ros/transform_broadcaster.h>
 #include <eigen3/Eigen/Dense>
 #include <librealsense2/rs.hpp>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include "pose_filter.h"
 
- #include <chrono>
-
-using sysclock_t = std::chrono::system_clock;
-
-std::string CurrentDate() {
-    std::time_t now = sysclock_t::to_time_t(sysclock_t::now());
-    char buf[32] = { 0 };
-    std::strftime(buf, sizeof(buf), "%Y%m%d%H%M%S", std::localtime(&now));
+// 获取当前时间字符串
+std::string GetTimeString() {
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    char buf[32];
+    std::strftime(buf, sizeof(buf), "%Y%m%d%H%M%S", std::localtime(&now_c));
     return std::string(buf);
 }
 
-void compute_camera_via_board(const cv::Mat& image,cv::Mat& r_mat,cv::Mat& t_vec,
-bool display = false) {
-    cv::Ptr<cv::aruco::DetectorParameters> detectorParams = new cv::aruco::DetectorParameters;
-    cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
-   // cv::aruco::ArucoDetector detector(dictionary, detectorParams);
+// 检测棋盘标记并估算相机位姿
+void EstimateCameraPose(const cv::Mat& img, cv::Mat& rotMat, cv::Mat& transVec, bool show = false) {
+    auto params = cv::aruco::DetectorParameters::create();
+    auto dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
 
-    cv::Mat cameraMatrix = cv::Mat::eye(3,3,CV_32FC1);
-    cv::Mat distCoeffs(5,1,CV_32FC1);
-    cameraMatrix.at<float>(0,0) = 607.019;
-    cameraMatrix.at<float>(1,1) = 607.019;
-    cameraMatrix.at<float>(0,2) = 315.875;
-    cameraMatrix.at<float>(1,2) = 248.763;
-    distCoeffs.at<float>(0) = 0.182874;
-    distCoeffs.at<float>(1) = -0.56215;
-    distCoeffs.at<float>(2) = -0.000804634;
-    distCoeffs.at<float>(3) = -0.00028305;
-    distCoeffs.at<float>(4) = 0.502297;
+    cv::Mat camMat = cv::Mat::eye(3,3,CV_32FC1);
+    cv::Mat dist(5,1,CV_32FC1);
+    camMat.at<float>(0,0) = 607.019f;
+    camMat.at<float>(1,1) = 607.019f;
+    camMat.at<float>(0,2) = 315.875f;
+    camMat.at<float>(1,2) = 248.763f;
+    dist.at<float>(0) = 0.182874f;
+    dist.at<float>(1) = -0.56215f;
+    dist.at<float>(2) = -0.000804634f;
+    dist.at<float>(3) = -0.00028305f;
+    dist.at<float>(4) = 0.502297f;
 
+    float markerLen = 0.07f;
+    int ref_id = 31;
+    cv::Mat objPts(4, 1, CV_32FC3);
+    objPts.ptr<cv::Vec3f>(0)[0] = cv::Vec3f(-markerLen/2+0.118, markerLen/2+0.05, 0);
+    objPts.ptr<cv::Vec3f>(0)[1] = cv::Vec3f(markerLen/2+0.118, markerLen/2+0.05, 0);
+    objPts.ptr<cv::Vec3f>(0)[2] = cv::Vec3f(markerLen/2+0.118, -markerLen/2+0.05, 0);
+    objPts.ptr<cv::Vec3f>(0)[3] = cv::Vec3f(-markerLen/2+0.118, -markerLen/2+0.05, 0);
 
-    cv::Mat objPoints(4, 1, CV_32FC3);
-    float markerLength = 0.07;
-    int origin_id = 31;
-    objPoints.ptr<cv::Vec3f>(0)[0] = cv::Vec3f(-markerLength / 2.f + 0.118, markerLength / 2.f + 0.05, 0);
-    objPoints.ptr<cv::Vec3f>(0)[1] = cv::Vec3f(markerLength / 2.f + 0.118, markerLength / 2.f+ 0.05, 0);
-    objPoints.ptr<cv::Vec3f>(0)[2] = cv::Vec3f(markerLength / 2.f + 0.118, -markerLength / 2.f+ 0.05, 0);
-    objPoints.ptr<cv::Vec3f>(0)[3] = cv::Vec3f(-markerLength / 2.f + 0.118, -markerLength / 2.f+ 0.05, 0);
-
- //   cv::cvtColor(image,image,cv::COLOR_RGB2BGR);
     std::vector<int> ids;
-    std::vector<std::vector<cv::Point2f>> corners,rejectedCandidates;
+    std::vector<std::vector<cv::Point2f>> corners, rejected;
+    cv::aruco::detectMarkers(img, dict, corners, ids, params, rejected);
 
-        cv::aruco::detectMarkers(image, 
-    dictionary, 
-    corners, 
-    ids, detectorParams, rejectedCandidates);
-
- //   detector.detectMarkers(image, corners, ids);
- //    printf("nMarkers: %d\n",int(ids.size()));
-
-    if (ids.size() > 0) {
-        cv::aruco::drawDetectedMarkers(image, corners, ids);
-        int nMarkers = corners.size();
-        std::vector<cv::Vec3d> rvecs(nMarkers), tvecs(nMarkers);
-        std::vector<int>::iterator origin_id_iter = std::find(ids.begin(),ids.end(),origin_id);
-        int origin_index = -1;
-        if(origin_id_iter != ids.end()) {
-            origin_index = std::distance(ids.begin(),origin_id_iter);
-        } else {
-            std::cout << "can not find origin id tag!\n";
-            return ;
+    if (!ids.empty()) {
+        cv::aruco::drawDetectedMarkers(img, corners, ids);
+        int n = corners.size();
+        std::vector<cv::Vec3d> rvecs(n), tvecs(n);
+        auto it = std::find(ids.begin(), ids.end(), ref_id);
+        int idx = (it != ids.end()) ? std::distance(ids.begin(), it) : -1;
+        if (idx < 0) {
+            std::cout << "Reference marker not found!\n";
+            return;
         }
-        std::vector<cv::Mat> rvec_mat;
-        // Calculate pose for each marker
-        for (int i = 0; i < nMarkers; i++) {
-            cv::solvePnP(objPoints, corners.at(i), cameraMatrix, distCoeffs, rvecs.at(i), tvecs.at(i));
-            cv::Mat current = cv::Mat( rvecs[i] );
-            rvec_mat.push_back(current);
-           // std::cout << i << " " << tvecs.at(i) << std::endl;
-           // std::cout << '\n';
+        std::vector<cv::Mat> rvecMatList;
+        for (int i = 0; i < n; ++i) {
+            cv::solvePnP(objPts, corners[i], camMat, dist, rvecs[i], tvecs[i]);
+            rvecMatList.push_back(cv::Mat(rvecs[i]));
         }
-        t_vec = cv::Mat(tvecs.at(origin_index));
-        cv::Mat res = compute_rotation_avg(rvec_mat);
-        cv::Rodrigues(res,r_mat);
-//        std::cout << ids[origin_index] << " " << origin_index << std::endl;
-//      std::cout << "result rotation:" << res << std::endl;
-//      std::cout << "resultes translation:" << t_vec << std::endl;
+        transVec = cv::Mat(tvecs[idx]);
+        cv::Mat avgRot = compute_rotation_avg(rvecMatList);
+        cv::Rodrigues(avgRot, rotMat);
 
-        if(display) {
-        // Draw axis for each marker
-            for(unsigned int i = 0; i < ids.size(); i++) {
-                cv::aruco::drawAxis(image, cameraMatrix, distCoeffs, rvecs[i], tvecs[i], 0.07);
+        if (show) {
+            for (unsigned int i = 0; i < ids.size(); ++i) {
+                cv::aruco::drawAxis(img, camMat, dist, rvecs[i], tvecs[i], 0.07);
             }
         }
     }
-    if (display) {
-        // Update the window with new data
-        cv::imshow("window", image);
+    if (show) {
+        cv::imshow("window", img);
         cv::waitKey();
     }
 }
 
+// 相机监控类
+class CameraPoseMonitor {
+public:
+    CameraPoseMonitor(ros::NodeHandle& nh) : nh_(nh), it_(nh_) {
+        Setup3DPoints();
+        params_ = cv::aruco::DetectorParameters::create();
+        dict_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
 
-class RealSenseMonitor {
-    public:
-    
-
-  RealSenseMonitor(ros::NodeHandle& nh): nh_(nh),it_(nh_) { 
-    // init calibration parameters
-    init_pts3d();
-    detectorParams_ = new cv::aruco::DetectorParameters;
-    dictionary_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
-
-    cameraMatrix_ = cv::Mat::eye(3,3,CV_32FC1);
-    distCoeffs_ = cv::Mat(5,1,CV_32FC1);
-    cameraMatrix_.at<float>(0,0) = 607.019;
-    cameraMatrix_.at<float>(1,1) = 607.019;
-    cameraMatrix_.at<float>(0,2) = 315.875;
-    cameraMatrix_.at<float>(1,2) = 248.763;
-    distCoeffs_.at<float>(0) = 0.182874;
-    distCoeffs_.at<float>(1) = -0.56215;
-    distCoeffs_.at<float>(2) = -0.000804634;
-    distCoeffs_.at<float>(3) = -0.00028305;
-    distCoeffs_.at<float>(4) = 0.502297;
-    image_sub_ = it_.subscribe("/camera/realsense", 1, &RealSenseMonitor::imageCb, this);
-  }
-
-    ~RealSenseMonitor(){
-
-  }
-
-  void imageCb(const sensor_msgs::ImageConstPtr& msg) {
-    cv_bridge::CvImagePtr cv_ptr;
-    try
-    {
-      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+        camMat_ = cv::Mat::eye(3,3,CV_32FC1);
+        dist_ = cv::Mat(5,1,CV_32FC1);
+        camMat_.at<float>(0,0) = 607.019f;
+        camMat_.at<float>(1,1) = 607.019f;
+        camMat_.at<float>(0,2) = 315.875f;
+        camMat_.at<float>(1,2) = 248.763f;
+        dist_.at<float>(0) = 0.182874f;
+        dist_.at<float>(1) = -0.56215f;
+        dist_.at<float>(2) = -0.000804634f;
+        dist_.at<float>(3) = -0.00028305f;
+        dist_.at<float>(4) = 0.502297f;
+        image_sub_ = it_.subscribe("/camera/realsense", 1, &CameraPoseMonitor::ImageCallback, this);
     }
-    catch (cv_bridge::Exception& e)
-    {
-      ROS_ERROR("cv_bridge exception: %s", e.what());
-      return;
-    }
-    float t = msg->header.stamp.toSec();
-    img_ = (cv_ptr->image);
-  }
 
+    ~CameraPoseMonitor() {}
 
-  void monitor(cv::Mat& r_mat,cv::Mat& tvec,
-  const tf::Transform& trans_world_viconobj_cam,
-  const tf::Transform& trans_world_droneup
-  ) {
-        if (img_.empty()) {
-            return ;
+    void ImageCallback(const sensor_msgs::ImageConstPtr& msg) {
+        try {
+            auto cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+            img_ = cv_ptr->image;
+        } catch (cv_bridge::Exception& e) {
+            ROS_ERROR("cv_bridge exception: %s", e.what());
         }
-        cv::Mat image = img_.clone();
-        
-        cv::cvtColor(image,image,cv::COLOR_RGB2BGR);
+    }
+
+    void GetPose(cv::Mat& rotMat, cv::Mat& transVec,
+                 const tf::Transform& world_cam,
+                 const tf::Transform& world_drone) {
+        if (img_.empty()) return;
+        cv::Mat frame = img_.clone();
+        cv::cvtColor(frame, frame, cv::COLOR_RGB2BGR);
 
         cv::Mat rvec = cv::Mat::zeros(3,1,CV_32FC1);
-        ros::Time time_stamp;
-        int num_of_detection;
-        bool draw_frames = false;
-        solve_pose_all(image,rvec,tvec,time_stamp,num_of_detection,draw_frames);
-        std::cout << "tag in camera:" << rvec << " " << tvec << " number of detection:" <<
-        num_of_detection << std::endl;
-        cv::Rodrigues( rvec,r_mat);
-        r_mat.convertTo(r_mat,CV_32FC1);
-        tvec.convertTo(tvec,CV_64FC1);
-  }
+        ros::Time stamp;
+        int detected = 0;
+        bool draw = false;
+        DetectPose(frame, rvec, transVec, stamp, detected, draw);
+        std::cout << "Detected tag pose: " << rvec << " " << transVec << " count: " << detected << std::endl;
+        cv::Rodrigues(rvec, rotMat);
+        rotMat.convertTo(rotMat, CV_32FC1);
+        transVec.convertTo(transVec, CV_64FC1);
+    }
 
-
-
-  bool solve_pose_all(const cv::Mat& image, cv::Mat& rvec,cv::Mat& tvec,ros::Time& time_stamp,
-  int& num_of_detection,bool draw_frames = false) {
-        if(image.empty()) {
-            printf("img is empty!\n");
+    bool DetectPose(const cv::Mat& frame, cv::Mat& rvec, cv::Mat& tvec, ros::Time& stamp,
+                    int& detected, bool draw = false) {
+        if (frame.empty()) {
+            std::cout << "Frame is empty!\n";
             return false;
         }
-        cv::Mat filtered = image.clone();
-        cv::Mat filtered_gray; 
-        cv::cvtColor(filtered,filtered_gray,cv::COLOR_BGR2GRAY);
-
-        // cv::GaussianBlur(filtered_gray,filtered_gray,cv::Size(3,3),1);
-        time_stamp = ros::Time::now();
+        cv::Mat gray;
+        cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+        stamp = ros::Time::now();
         std::vector<int> ids;
-        std::vector<std::vector<cv::Point2f>> corners,rejectedCandidates;
-        cv::aruco::detectMarkers(filtered_gray, dictionary_, corners, ids,
-        detectorParams_,rejectedCandidates);
-        std::vector<cv::Mat> r_tag_vec;
-      //  printf("number of detected markers: %lu\n",ids.size());
-        if (ids.size() > 0) {
-            int nMarkers = static_cast<int>(corners.size());
-            std::vector<cv::Point2f> pts2d;
-            std::vector<cv::Point3f> pts3d;
-            std::map<int,std::vector<cv::Point2f>> pts2d_map;
-            for (int i = 0; i < nMarkers; i++) {
-               // printf("current id %d\n",ids[i]);
-                if (ids[i] > 16) {
-                    continue;
-                }
-                for(size_t k  = 0; k < 4; k++) {
-                    pts2d.push_back(corners.at(i)[k]);
-                }
-                auto map_iter = pts3d_map_.find(ids[i]);
-                for(size_t k = 0; k < map_iter->second.size(); k++) {
-                    pts3d.push_back(map_iter->second[k]);
-                }
-            }
-           // std::cout << "pts 2d size:" << pts2d.size() << std::endl;
-           // std::cout << "pts 3d size:" << pts3d.size() << std::endl;
-            if (pts2d.empty()) {
-                printf("no valid points detected!\n");
-                return false;
-            }
-            cv::solvePnP(pts3d, pts2d,cameraMatrix_, distCoeffs_, rvec, tvec,false,cv::SOLVEPNP_ITERATIVE);
+        std::vector<std::vector<cv::Point2f>> corners, rejected;
+        cv::aruco::detectMarkers(gray, dict_, corners, ids, params_, rejected);
+
+        std::vector<cv::Point2f> pts2d;
+        std::vector<cv::Point3f> pts3d;
+        for (size_t i = 0; i < corners.size(); ++i) {
+            if (ids[i] > 16) continue;
+            pts2d.insert(pts2d.end(), corners[i].begin(), corners[i].end());
+            auto it = pts3d_map_.find(ids[i]);
+            pts3d.insert(pts3d.end(), it->second.begin(), it->second.end());
         }
+        if (pts2d.empty()) {
+            std::cout << "No valid points!\n";
+            return false;
+        }
+        cv::solvePnP(pts3d, pts2d, camMat_, dist_, rvec, tvec, false, cv::SOLVEPNP_ITERATIVE);
         tvec = tvec / 1000;
-        num_of_detection = static_cast<int>(ids.size());
-        if(draw_frames) {
-            if (ids.size() > 0) {
-                cv::aruco::drawAxis(filtered, cameraMatrix_, distCoeffs_, rvec, tvec, 0.03);
-                cv::aruco::drawDetectedMarkers(filtered, corners, ids);
-            }
-            cv::imshow(window_name_, filtered);
+        detected = static_cast<int>(ids.size());
+        if (draw && !ids.empty()) {
+            cv::aruco::drawAxis(frame, camMat_, dist_, rvec, tvec, 0.03);
+            cv::aruco::drawDetectedMarkers(frame, corners, ids);
+            cv::imshow(window_name_, frame);
             char key = cv::waitKey(1);
             if (key == ' ') {
                 static int cnt = 0;
-                printf("save image!\n");
-                cv::imwrite("image" + std::to_string(cnt++) + ".png",filtered);
+                cv::imwrite("img_" + std::to_string(cnt++) + ".png", frame);
             }
         }
-        if (ids.size() > 0) {
-            return true;
-        } else {
-            return false;
-        }
-  }
-
+        return !ids.empty();
+    }
 
 private:
-    void init_pts3d();
-    const std::string window_name_ = "Display Image";
-    std::map<int,std::vector<cv::Point3f>> pts3d_map_;
-    cv::Mat cameraMatrix_;
-    cv::Mat distCoeffs_;
-    cv::Ptr<cv::aruco::DetectorParameters> detectorParams_;
-    cv::Ptr<cv::aruco::Dictionary> dictionary_;
+    void Setup3DPoints();
+    const std::string window_name_ = "ImageDisplay";
+    std::map<int, std::vector<cv::Point3f>> pts3d_map_;
+    cv::Mat camMat_;
+    cv::Mat dist_;
+    cv::Ptr<cv::aruco::DetectorParameters> params_;
+    cv::Ptr<cv::aruco::Dictionary> dict_;
     cv::Mat img_;
-  ros::NodeHandle nh_;
-  image_transport::ImageTransport it_;
-  image_transport::Subscriber image_sub_;
-
+    ros::NodeHandle nh_;
+    image_transport::ImageTransport it_;
+    image_transport::Subscriber image_sub_;
 };
 
-void RealSenseMonitor::init_pts3d() {
-    std::map<int,std::vector<cv::Point3f>> pts3d_map =
-        {   {0,
-                {
-                    cv::Point3f(-14.5, 14.5,   0),
-                    cv::Point3f(14.5,  14.5,   0),
-                    cv::Point3f(14.5,  -14.5,   0),
-                    cv::Point3f(-14.5, -14.5,   0)
+// 初始化标记点的三维坐标
+void CameraPoseMonitor::Setup3DPoints() {
+    std::map<int, std::vector<cv::Point3f>> pts = {
+        {0, {cv::Point3f(-14.5, 14.5, 0), cv::Point3f(14.5, 14.5, 0), cv::Point3f(14.5, -14.5, 0), cv::Point3f(-14.5, -14.5, 0)}},
+        {1, {cv::Point3f(118.0, 14.5, 0), cv::Point3f(147.0, 14.5, 0), cv::Point3f(147.0, -14.5, 0), cv::Point3f(118.0, -14.5, 0)}},
+        {2, {cv::Point3f(-14.5, -118.0, 0), cv::Point3f(14.5, -118.0, 0), cv::Point3f(14.5, -147.0, 0), cv::Point3f(-14.5, -147.0, 0)}},
+        {3, {cv::Point3f(-147.0, 14.5, 0), cv::Point3f(-118.0, 14.5, 0), cv::Point3f(-118.0, -14.5, 0), cv::Point3f(-147.0, -14.5, 0)}},
+        {4, {cv::Point3f(-14.5, 147.0, 0), cv::Point3f(14.5, 147.0, 0), cv::Point3f(14.5, 118.0, 0), cv::Point3f(-14.5, 118.0, 0)}},
+        {5, {cv::Point3f(60.75, 175.0, 0), cv::Point3f(86.75, 175.0, 0), cv::Point3f(86.75, 149.0, 0), cv::Point3f(60.75, 149.0, 0)}},
+        {6, {cv::Point3f(149.0, 86.75, 0), cv::Point3f(175.0, 86.75, 0), cv::Point3f(175.0, 60.75, 0), cv::Point3f(149.0, 60.75, 0)}},
+        {7, {cv::Point3f(149.0, -60.75, 0), cv::Point3f(175.0, -60.75, 0), cv::Point3f(175.0, -86.75, 0), cv::Point3f(149.0, -86.75, 0)}},
+        {8, {cv::Point3f(60.75, -149.0, 0), cv::Point3f(86.75, -149.0, 0), cv::Point3f(86.75, -175.0, 0), cv::Point3f(60.75, -175.0, 0)}},
+        {9, {cv::Point3f(-86.75, -149.0, 0), cv::Point3f(-60.75, -149.0, 0), cv::Point3f(-60.75, -175.0, 0), cv::Point3f(-86.75, -175.0, 0)}},
+        {10, {cv::Point3f(-175.0, -60.75, 0), cv::Point3f(-149.0, -60.75, 0), cv::Point3f(-149.0, -86.75, 0), cv::Point3f(-175.0, -86.75, 0)}},
+        {11, {cv::Point3f(-175.0, 86.75, 0), cv::Point3f(-149.0, 86.75, 0), cv::Point3f(-149.0, 60.75, 0), cv::Point3f(-175.0, 60.75, 0)}},
+        {12, {cv::Point3f(-86.75, 175.0, 0), cv::Point3f(-60.75, 175.0, 0), cv::Point3f(-60.75, 149.0, 0), cv::Point3f(-86.75, 149.0, 0)}},
+        {13, {cv::Point3f(126.5, 146.5, 0), cv::Point3f(146.5, 146.5, 0), cv::Point3f(146.5, 126.5, 0), cv::Point3f(126.5, 126.5, 0)}},
+        {14, {cv::Point3f(126.5, -126.5, 0), cv::Point3f(146.5, -126.5, 0), cv::Point3f(146.5, -146.5, 0), cv::Point3f(126.5, -146.5, 0)}},
+        {15, {cv::Point3f(-146.5, -126.5, 0), cv::Point3f(-126.5, -126.5, 0), cv::Point3f(-126.5, -146.5, 0), cv::Point3f(-146.5, -146.5, 0)}},
+        {16, {cv::Point3f(-146.5, 146.5, 0), cv::Point3f(-126.5, 146.5, 0), cv::Point3f(-126.5, 126.5, 0), cv::Point3f(-146.5, 126.5, 0)}}
+    };
+    pts3d_map_ = pts;
+}
 
-                }
-            },
-            {1,
-                {
-                    cv::Point3f(118.0, 14.5,    0),
-                    cv::Point3f(147.0, 14.5,    0),
-                    cv::Point3f(147.0, -14.5,   0),
-                    cv::Point3f(118.0, -14.5,   0)
-
-                }
-            },
-            {2,
-                {
-                    cv::Point3f(-14.5, -118.0,   0),
-                    cv::Point3f(14.5,  -118.0,   0),
-                    cv::Point3f(14.5,  -147.0,   0),
-                    cv::Point3f(-14.5, -147.0,   0)
-                }
-            },
-            {3,
-                {
-                    cv::Point3f(-147.0, 14.5,   0),
-                    cv::Point3f(-118.0, 14.5,   0),
-                    cv::Point3f(-118.0, -14.5,  0),
-                    cv::Point3f(-147.0, -14.5,  0)
-                }
-            },
-            {4,
-                {
-                    cv::Point3f(-14.5, 147.0,  0),
-                    cv::Point3f(14.5,  147.0,   0),
-                    cv::Point3f(14.5,  118.0,   0),
-                    cv::Point3f(-14.5, 118.0,  0)
-                }
-            },
-            {5,
-                {
-                    cv::Point3f(60.75, 175.0,  0),
-                    cv::Point3f(86.75, 175.0,   0),
-                    cv::Point3f(86.75, 149.0,   0),
-                    cv::Point3f(60.75, 149.0,  0)
-                }
-            },
-            {6,
-                {
-                    cv::Point3f(149.0, 86.75,  0),
-                    cv::Point3f(175.0, 86.75,   0),
-                    cv::Point3f(175.0, 60.75,   0),
-                    cv::Point3f(149.0, 60.75,  0)
-                }
-            },
-            {7,
-                {
-                    cv::Point3f(149.0, -60.75,  0),
-                    cv::Point3f(175.0, -60.75,   0),
-                    cv::Point3f(175.0, -86.75,   0),
-                    cv::Point3f(149.0, -86.75,  0)
-                }
-            },
-            {8,
-                {
-                    cv::Point3f(60.75, -149.0,  0),
-                    cv::Point3f(86.75, -149.0,   0),
-                    cv::Point3f(86.75, -175.0,   0),
-                    cv::Point3f(60.75, -175.0,  0)
-                }
-            },
-            {9,
-                {
-                    cv::Point3f(-86.75, -149.0,  0),
-                    cv::Point3f(-60.75, -149.0,   0),
-                    cv::Point3f(-60.75, -175.0,   0),
-                    cv::Point3f(-86.75, -175.0,  0)
-                }
-            }, //10: [[-175.0, -60.75], [-149.0, -60.75], [-149.0, -86.75], [-175.0, -86.75]]
-            {10,
-                {
-                    cv::Point3f(-175.0, -60.75,  0),
-                    cv::Point3f(-149.0, -60.75,   0),
-                    cv::Point3f(-149.0, -86.75,   0),
-                    cv::Point3f(-175.0, -86.75,  0)
-                }
-            },// 11: [[-175.0, 86.75], [-149.0, 86.75], [-149.0, 60.75], [-175.0, 60.75]],
-            //12: [[-86.75, 175.0], [-60.75, 175.0], [-60.75, 149.0], [-86.75, 149.0]]}
-            {11,
-                {
-                    cv::Point3f(-175.0, 86.75,  0),
-                    cv::Point3f(-149.0, 86.75,   0),
-                    cv::Point3f(-149.0, 60.75,   0),
-                    cv::Point3f(-175.0, 60.75,  0)
-                }
-            },
-            {12,
-                {
-                    cv::Point3f(-86.75, 175.0,  0),
-                    cv::Point3f(-60.75, 175.0,   0),
-                    cv::Point3f(-60.75, 149.0,   0),
-                    cv::Point3f(-86.75, 149.0,  0)
-                }
-            }, 
-            {13,
-                {
-                    cv::Point3f(126.5, 146.5,  0),
-                    cv::Point3f(146.5, 146.5,   0),
-                    cv::Point3f(146.5, 126.5,   0),
-                    cv::Point3f(126.5, 126.5,  0)
-                }
-            },
-            {14,
-                {
-                    cv::Point3f(126.5, -126.5,  0),
-                    cv::Point3f(146.5, -126.5,   0),
-                    cv::Point3f(146.5, -146.5,   0),
-                    cv::Point3f(126.5, -146.5,  0)
-                }
-            },
-            {15,
-                {
-                    cv::Point3f(-146.5, -126.5,  0),
-                    cv::Point3f(-126.5, -126.5,   0),
-                    cv::Point3f(-126.5, -146.5,   0),
-                    cv::Point3f(-146.5, -146.5,  0)
-                }
-            },
-            {16,
-                {
-                    cv::Point3f(-146.5, 146.5,  0),
-                    cv::Point3f(-126.5, 146.5,   0),
-                    cv::Point3f(-126.5, 126.5,   0),
-                    cv::Point3f(-146.5, 126.5,  0)
-                }
-            }
-        };
-        pts3d_map_ = pts3d_map;
-  }
-  
-
-int main(int argc, char * argv[]) {
-    //init ros
-    ros::init(argc, argv, "cali_camera_vicon");
+int main(int argc, char* argv[]) {
+    ros::init(argc, argv, "camera_pose_calib");
     ros::NodeHandle nh;
+    tf::TransformListener* tfListener = new tf::TransformListener;
+    ros::Rate loop_rate(200);
+    int frame_count = 0;
+    CameraPoseMonitor monitor(nh);
 
-    //listen to vicon transform
-    tf::TransformListener* tfListener= new tf::TransformListener;
-    ros::Rate rate(200);
-    static int cnt = 0;
-    RealSenseMonitor rs_monitor(nh);
-    bool read_precalibrated = false;
-
-    while(nh.ok()) {
+    while (nh.ok()) {
         ros::spinOnce();
-        bool tf_ok = true;
-        tf::StampedTransform trans_world_viconobj; 
-        tf::StampedTransform trans_world_droneup;  //drone's coordinate Turing
-        tf::StampedTransform trans_droneup_viconcam_obj;
-        tf::StampedTransform trans_viconworld_viconboard;
-
+        bool tf_ready = true;
+        tf::StampedTransform world_board, world_cam, world_drone, drone_cam, board_world;
         try {
-          tfListener->lookupTransform("/vicon/world", "/vicon/Cali_ruler/Cali_ruler", ros::Time(0), trans_viconworld_viconboard);
-        // for Turing
-          tfListener->lookupTransform("/vicon/world", "/vicon/realsense/realsense", ros::Time(0), trans_world_viconobj);
-          tfListener->lookupTransform("/vicon/world", "/vicon/Turing/Turing", ros::Time(0), trans_world_droneup);
-          tfListener->lookupTransform("vicon/Turing/Turing", "/vicon/realsense/realsense", ros::Time(0), trans_droneup_viconcam_obj);
-                } catch(tf::TransformException ex) {
-            ROS_ERROR("-------> %s", ex.what());
-            tf_ok = false;
+            tfListener->lookupTransform("/vicon/world", "/vicon/Cali_ruler/Cali_ruler", ros::Time(0), board_world);
+            tfListener->lookupTransform("/vicon/world", "/vicon/realsense/realsense", ros::Time(0), world_cam);
+            tfListener->lookupTransform("/vicon/world", "/vicon/Turing/Turing", ros::Time(0), world_drone);
+            tfListener->lookupTransform("vicon/Turing/Turing", "/vicon/realsense/realsense", ros::Time(0), drone_cam);
+        } catch (tf::TransformException& ex) {
+            ROS_ERROR("TF Exception: %s", ex.what());
+            tf_ready = false;
         }
-        if(tf_ok) {
-            cv::Mat r_mat(3,3,CV_32FC1);
-            cv::Mat t_vec(3,1,CV_32FC1);
-            rs_monitor.monitor(r_mat,t_vec,trans_world_viconobj,trans_world_droneup);
+        if (tf_ready) {
+            cv::Mat rotMat(3,3,CV_32FC1), transVec(3,1,CV_32FC1);
+            monitor.GetPose(rotMat, transVec, world_cam, world_drone);
 
-        tf::Matrix3x3 tf_rot(
-            r_mat.at<float>(0, 0), r_mat.at<float>(0, 1), r_mat.at<float>(0, 2),
-            r_mat.at<float>(1, 0), r_mat.at<float>(1, 1), r_mat.at<float>(1, 2),
-            r_mat.at<float>(2, 0), r_mat.at<float>(2, 1), r_mat.at<float>(2, 2));
-        tf::Transform trans_cam_board(tf_rot, tf::Vector3(t_vec.at<double>(0),t_vec.at<double>(1),t_vec.at<double>(2)));
+            tf::Matrix3x3 tf_rot(
+                rotMat.at<float>(0,0), rotMat.at<float>(0,1), rotMat.at<float>(0,2),
+                rotMat.at<float>(1,0), rotMat.at<float>(1,1), rotMat.at<float>(1,2),
+                rotMat.at<float>(2,0), rotMat.at<float>(2,1), rotMat.at<float>(2,2));
+            tf::Transform cam_board(tf_rot, tf::Vector3(transVec.at<double>(0), transVec.at<double>(1), transVec.at<double>(2)));
 
-        auto trans_camera2hand = trans_world_droneup.inverse() * trans_viconworld_viconboard * trans_cam_board.inverse();
+            auto cam2hand = world_drone.inverse() * board_world * cam_board.inverse();
+            auto cam_vicon = cam_board * board_world.inverse();
+            auto viconobj_world = world_cam.inverse();
+            auto viconobj_cam = viconobj_world * cam_vicon.inverse();
+            auto drone_cam_trans = drone_cam * viconobj_cam;
 
-        tf::Transform trans_cam_viconworld = trans_cam_board * trans_viconworld_viconboard.inverse();
-        auto trans_viconobj_world = trans_world_viconobj.inverse();
-        auto trans_viconobj_cam = trans_viconobj_world * trans_cam_viconworld.inverse();
-        auto trans_drone_cam = trans_droneup_viconcam_obj * trans_viconobj_cam;
-        std::cout << trans_viconobj_cam.getOrigin().x() << " " << trans_viconobj_cam.getOrigin().y() << " " << 
-           trans_viconobj_cam.getOrigin().z() << std::endl;
+            std::cout << "viconobj_cam: " << viconobj_cam.getOrigin().x() << " " << viconobj_cam.getOrigin().y() << " " << viconobj_cam.getOrigin().z() << std::endl;
+            std::cout << "drone_cam_trans: " << drone_cam_trans.getOrigin().x() << " " << drone_cam_trans.getOrigin().y() << " " << drone_cam_trans.getOrigin().z() << std::endl;
+            std::cout << "cam2hand: " << cam2hand.getOrigin().x() << " " << cam2hand.getOrigin().y() << " " << cam2hand.getOrigin().z() << std::endl;
 
-        std::cout << "trans_drone_cam:" << trans_drone_cam.getOrigin().x() << " " << trans_drone_cam.getOrigin().y() << " " << 
-            trans_drone_cam.getOrigin().z() << std::endl; 
-        std::cout << "trans_camera2hand:" << trans_camera2hand.getOrigin().x() << " " << trans_camera2hand.getOrigin().y() << " " << 
-            trans_camera2hand.getOrigin().z() << std::endl; 
-         
-        if (cnt ++ == 100) {
-            std::ofstream fs("calibration_trans_drone_cam_" + CurrentDate() + ".txt");
-            // qx qy qz qw x y z
-            fs << trans_drone_cam.getRotation().x() << " " << 
-                trans_drone_cam.getRotation().y() << " " << 
-            trans_drone_cam.getRotation().z() << " " << trans_drone_cam.getRotation().w() << " "
-            << trans_drone_cam.getOrigin().x() << " " << trans_drone_cam.getOrigin().y() << " "
-            << trans_drone_cam.getOrigin().z() << std::endl;
-            Eigen::Quaterniond q_;
-            q_.x() = trans_drone_cam.getRotation().x();
-            q_.y() = trans_drone_cam.getRotation().y();
-            q_.z() = trans_drone_cam.getRotation().z();
-            q_.w() = trans_drone_cam.getRotation().w();
-
-            fs << quaternion_to_euler(q_)(0) * 180.f / M_PI << " " << quaternion_to_euler(q_)(1)* 180.f / M_PI << " " << quaternion_to_euler(q_)(2)* 180.f / M_PI << std::endl;
-            fs.close();
-            printf("Extrinsics saved!\n");
+            if (++frame_count == 100) {
+                std::ofstream ofs("calibration_trans_drone_cam_" + GetTimeString() + ".txt");
+                ofs << drone_cam_trans.getRotation().x() << " "
+                    << drone_cam_trans.getRotation().y() << " "
+                    << drone_cam_trans.getRotation().z() << " "
+                    << drone_cam_trans.getRotation().w() << " "
+                    << drone_cam_trans.getOrigin().x() << " "
+                    << drone_cam_trans.getOrigin().y() << " "
+                    << drone_cam_trans.getOrigin().z() << std::endl;
+                Eigen::Quaterniond q;
+                q.x() = drone_cam_trans.getRotation().x();
+                q.y() = drone_cam_trans.getRotation().y();
+                q.z() = drone_cam_trans.getRotation().z();
+                q.w() = drone_cam_trans.getRotation().w();
+                ofs << quaternion_to_euler(q)(0) * 180.0 / M_PI << " "
+                    << quaternion_to_euler(q)(1) * 180.0 / M_PI << " "
+                    << quaternion_to_euler(q)(2) * 180.0 / M_PI << std::endl;
+                ofs.close();
+                std::cout << "Calibration saved!\n";
+            }
         }
-        }
-        rate.sleep();
-     
+        loop_rate.sleep();
     }
     delete tfListener;
     return EXIT_SUCCESS;
-
 }

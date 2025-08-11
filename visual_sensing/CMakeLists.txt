@@ -51,5 +51,17 @@ include_directories(
 target_link_libraries(realsense ${catkin_LIBRARIES}) #${OpenCV_LIBS}
 target_link_libraries(onboard_camera_video ${catkin_LIBRARIES}) #${OpenCV_LIBS}
 
+
+# add_executable(detect_marker
+#   src/test_node.cpp
+#   ${${PROJECT_NAME}_CPP_SOURCES}
+# )
+# add_dependencies(test_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# target_link_libraries(test_node
+#   ${catkin_LIBRARIES}
+#   ${Boost_LIBRARIES}
+# )
+
+
 ## Use this on my computer
 ##target_link_libraries(realsense ${OpenCV_LIBS} ${catkin_LIBRARIES}) #${OpenCV_LIBS}

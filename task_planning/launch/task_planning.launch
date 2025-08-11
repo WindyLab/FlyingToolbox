@@ -1,5 +1,5 @@
 <launch>
-    <node name="airbox_monitor_node" pkg="airbox_monitor" type="airbox_monitor" output="screen">
+    <node name="task_planning_node" pkg="task_planning" type="task_planning" output="screen">
         <param name="rosconsole_level" value="info" />
         <param name="topic1" value="/vicon/vpp_rk/vpp_rk" />
         <param name="topic2" value="/vicon/ruler/ruler" />

@@ -4,8 +4,8 @@
 // government, commercial, or other organizational use.
 // File: nn_predict.cpp
 //
-// MATLAB Coder version            : 23.2
-// C/C++ source code generated on  : 24-May-2024 14:17:44
+// MATLAB Coder version            : 24.2
+// C/C++ source code generated on  : 2025-08-08 19:18:20
 //
 
 // Include Files
@@ -46,12 +46,6 @@ float nn_predict(const double in[8])
 }
 
 //
-// A persistent object disnet is used to load the series network object.
-//  At the first call to this function, the persistent object is constructed and
-//  setup. When the function is called subsequent times, the same object is
-//  reused to call predict on inputs, thus avoiding reconstructing and reloading
-//  the network object.
-//
 // Arguments    : void
 // Return Type  : void
 //
@@ -63,18 +57,20 @@ void nn_predict_delete()
 }
 
 //
-// A persistent object disnet is used to load the series network object.
-//  At the first call to this function, the persistent object is constructed and
-//  setup. When the function is called subsequent times, the same object is
-//  reused to call predict on inputs, thus avoiding reconstructing and reloading
-//  the network object.
-//
 // Arguments    : void
 // Return Type  : void
 //
 void nn_predict_init()
 {
   disnet_not_empty = false;
+}
+
+//
+// Arguments    : void
+// Return Type  : void
+//
+void nn_predict_new()
+{
   disnet.matlabCodegenIsDeleted = true;
 }
 

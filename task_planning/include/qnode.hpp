@@ -1,10 +1,10 @@
 /**
- * @file /include/airbox_monitor/qnode.hpp
+ * @file /include/task_planning/qnode.hpp
  * @brief ROS communication node for UAV monitoring
  */
 
-#ifndef AIRBOX_MONITOR_QNODE_HPP_
-#define AIRBOX_MONITOR_QNODE_HPP_
+#ifndef TASK_PLANNING_QNODE_HPP_
+#define TASK_PLANNING_QNODE_HPP_
 
 #ifndef Q_MOC_RUN
 #include <ros/ros.h>
@@ -20,7 +20,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 
-namespace airbox_monitor {
+namespace task_planning {
 
 class QNode : public QThread {
     Q_OBJECT
@@ -51,6 +51,6 @@ private:
     ros::Subscriber uav2_pose_sub_;
 };
 
-}  // namespace airbox_monitor
+}  // namespace task_planning
 
-#endif  // AIRBOX_MONITOR_QNODE_HPP_
+#endif  // TASK_PLANNING_QNODE_HPP_

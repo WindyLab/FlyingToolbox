@@ -3,15 +3,14 @@
 ##############################################################################
 
 cmake_minimum_required(VERSION 2.8.0)
-project(airbox_monitor)
+project(task_planning)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 ##############################################################################
 # Catkin
 ##############################################################################
 
-# qt_build provides the qt cmake glue, roscpp the comms for a default talker
-find_package(catkin REQUIRED COMPONENTS qt_build roscpp mavros_msgs std_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp mavros_msgs std_msgs)
 include_directories(${catkin_INCLUDE_DIRS})
 
 # add
@@ -34,7 +33,6 @@ include_directories(
 # Qt Environment
 ##############################################################################
 
-# this comes from qt_build's qt-ros.cmake which is automatically 
 # included via the dependency call in package.xml
 # rosbuild_prepare_qt4(QtCore QtGui) # Add the appropriate components to the component list here
 
@@ -60,7 +58,7 @@ file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINK
 # Binaries
 ##############################################################################
 
-add_executable(airbox_monitor ${QT_SOURCES} ${QT_RESOURCES_CPP} ${QT_FORMS_HPP} ${QT_MOC_HPP})
-target_link_libraries(airbox_monitor ${QT_LIBRARIES} ${catkin_LIBRARIES} Qt5::Widgets)
-install(TARGETS airbox_monitor RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+add_executable(task_planning ${QT_SOURCES} ${QT_RESOURCES_CPP} ${QT_FORMS_HPP} ${QT_MOC_HPP})
+target_link_libraries(task_planning ${QT_LIBRARIES} ${catkin_LIBRARIES} Qt5::Widgets)
+install(TARGETS task_planning RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 

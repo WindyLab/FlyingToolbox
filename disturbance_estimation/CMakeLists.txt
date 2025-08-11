@@ -43,17 +43,30 @@ include_directories(
 include_directories(/usr/include/eigen3)
 
 add_executable(disturbance_est
-src/disturbance_est.cpp
-src/log4z.cpp
-)
+src/addBiasApplyActivation.cpp
+src/elementwiseOperationInPlace.cpp
+src/nn_predict_data.cpp
+src/nn_predict_initialize.cpp
+src/predict.cpp
+src/predictForRNN.cpp
+src/nn_predict.cpp
+src/nn_predict_terminate.cpp
+src/unaryElementwise.cpp
+src/disturbance_est.cpp 
+src/log4z.cpp)
+add_dependencies(disturbance_est ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(disturbance_est ${catkin_LIBRARIES} ${OpenMP_LIBS})
 
-add_dependencies(disturbance_est disturbance_estimation_gencpp)
 
-target_link_libraries(disturbance_est ${catkin_LIBRARIES})
+add_executable(disturbance_est_imu
+src/disturbance_est_imu.cpp 
+src/log4z.cpp)
+add_dependencies(disturbance_est_imu ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(disturbance_est_imu ${catkin_LIBRARIES})
+
+add_executable(motor_state_uart src/motor_state_uart.cpp)
+add_dependencies(motor_state_uart ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(motor_state_uart ${catkin_LIBRARIES})
 
 
-# #uncomment the following 4 lines to use the Eigen library
-# find_package(cmake_modules REQUIRED)
-# find_package(Eigen3 REQUIRED)
-# include_directories(${EIGEN3_INCLUDE_DIR})
-# add_definitions(${EIGEN_DEFINITIONS})
+
