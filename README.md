@@ -84,9 +84,9 @@ The repository development version is tested on *Linux* operating systems. The d
 
 2. Install dependencies:
 
-   
+
    - Disturbance estimation:
-   This package utilizes MATLAB Coder for neural network code generation. For detailed technical specifications, please refer to the documentation at: https://ww2.mathworks.cn/help/coder/deep-learning-code-generation-fundamentals.html?s_tid=CRUX_lftnav. Additionally, the following dependencies must be installed to execute the generated code.
+      This package utilizes MATLAB Coder for neural network code generation. For detailed technical specifications, please refer to the documentation at: https://ww2.mathworks.cn/help/coder/deep-learning-code-generation-fundamentals.html?s_tid=CRUX_lftnav. Additionally, the following dependencies must be installed to execute the generated code.
 
  ```bash
      sudo apt-get install ros-noetic-serial ros-noetic-eigen-conversions
