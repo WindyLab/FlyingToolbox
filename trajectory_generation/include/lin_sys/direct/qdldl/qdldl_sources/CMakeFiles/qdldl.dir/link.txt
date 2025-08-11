@@ -1,0 +1,1 @@
+/usr/bin/cc  -fPIC  -O3 -O3  -shared -Wl,-soname,libqdldl.so -o out/libqdldl.so CMakeFiles/qdldl.dir/src/qdldl.c.o  -lm -lrt -ldl 

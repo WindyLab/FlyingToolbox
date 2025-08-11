@@ -1,0 +1,15 @@
+time  stamp                
+uint8 frameLength
+uint8 protocolVersion
+uint8 command
+uint16 packetCount
+uint16[8] packetNumber
+float32[8] rcThrottle           
+float32[8] actualThrottle       
+uint16[8] electricalSpeed  
+float32[8] busVoltage          
+float32[8] busCurrent           
+float32[8] phaseCurrent        
+uint8[8] mosTemperature        
+uint8[8] capacitorTemperature  
+uint16[8] statusCode

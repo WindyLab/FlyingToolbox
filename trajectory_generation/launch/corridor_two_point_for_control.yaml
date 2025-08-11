@@ -1,0 +1,92 @@
+# This file is used for describing the corridor in this task.
+# number of path
+num_path: 2
+# data of the task
+task_data:
+# task 1
+  # start point
+  - start_pt:
+      pos: [1.0, 1.5, -2.8]
+      vel: [0.0, 0.0, 0.0]
+      acc: [0.0, 0.0, 0.0]
+  # end point 
+    end_pt:
+      pos: [1.0, 0.0, -2.8]
+      vel: [0.0, 0.0, 0.0]
+      acc: [0.0, 0.0, 0.0]
+  # task type: 0->move, 1->dock, 2->manipulation, 3->move and wait, 4->release tool  
+    task_type: 1
+  # holding time for end-effector working 
+    hold_time: 10.0
+  # number of object ID.  if end_eff_type> 4, it means the target is a manipulation target.
+    end_eff_type: 7
+  # end-effector is open or close in before manipulation. griper: 0->open,1->close. Only valide for the manipulaton. 
+    end_eff_switch_bef: 1
+  # end-effector is open or close. griper: 0->open,1->close. Only valide for the manipulaton.
+    end_eff_switch: 1
+  # end-effector is open or close in after manipulation. griper: 0->open,1->close. Only valide for the manipulaton. 
+    end_eff_switch_aft: 1
+  # offset for docking and manipulation ID 1->2.8 ID 2- >0.036
+    end_dock_offset: 0.045
+  # pick up or change end-effector : false --- pick, true --- change
+  # if end_eff_type == 0, docking_pick_change is useless
+    docking_pick_change: false
+  # corridor 
+    num_polyhedron: 1
+    corridor:
+  # corridor 1
+      - s_scale: 8.0
+        upper_vel: [1.0,1.0,1.0]
+        lower_vel: [-1.0, -1.0, -1.0]
+        upper_acc: [1.0,1.0,1.0]
+        lower_acc: [-1.0, -1.0, -1.0]
+        A_pos: 
+          row: 3
+          col: 3
+          data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0,0.0, 0.0, 1.0]
+        b_u_pos: [1.1, 2.0, -1.0]
+        b_l_pos: [-1.5, -2.0, -3.0]
+
+# task 2
+  # start point
+  - start_pt:
+      pos: [1.0, 0.0, -2.8]
+      vel: [0.0, 0.0, 0.0]
+      acc: [0.0, 0.0, 0.0]
+  # end point 
+    end_pt:
+      pos: [-1.152, -0.048, -2.8]
+      vel: [0.0, 0.0, 0.0]
+      acc: [0.0, 0.0, 0.0]
+  # task type: 0->move, 1->dock, 2->manipulation, 3->move and wait, 4->release tool  
+    task_type: 2
+  # holding time for end-effector working 
+    hold_time: 10.0
+  # number of object ID.  if end_eff_type> 4, it means the target is a manipulation target.
+    end_eff_type: 4
+  # end-effector is open or close in before manipulation. griper: 0->open,1->close. Only valide for the manipulaton. 
+    end_eff_switch_bef: 1
+  # end-effector is open or close. griper: 0->open,1->close. Only valide for the manipulaton.
+    end_eff_switch: 1
+  # end-effector is open or close in after manipulation. griper: 0->open,1->close. Only valide for the manipulaton. 
+    end_eff_switch_aft: 1
+  # offset for docking and manipulation ID 1->2.8 ID 2- >0.036
+    end_dock_offset: 0.045
+  # pick up or change end-effector : false --- pick, true --- change
+  # if end_eff_type == 0, docking_pick_change is useless
+    docking_pick_change: false
+  # corridor 
+    num_polyhedron: 1
+    corridor:
+  # corridor 1
+      - s_scale: 8.0
+        upper_vel: [1.0,1.0,1.0]
+        lower_vel: [-1.0, -1.0, -1.0]
+        upper_acc: [1.0,1.0,1.0]
+        lower_acc: [-1.0, -1.0, -1.0]
+        A_pos: 
+          row: 3
+          col: 3
+          data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0,0.0, 0.0, 1.0]
+        b_u_pos: [1.1, 2.0, -1.0]
+        b_l_pos: [-1.5, -2.0, -3.0]

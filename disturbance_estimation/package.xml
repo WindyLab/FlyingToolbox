@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>disturbance_estimation</name>
+  <version>0.0.0</version>
+  <description>The disturbance_estimation package</description>
+
+  <maintainer email="ahao@todo.todo">ahao</maintainer>
+
+  <license>TODO</license>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>roscpp</depend>
+  <depend>serial</depend>
+  <build_depend>std_msgs</build_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <depend>mavros_msgs</depend>
+  <!-- <build_export_depend>mavros_msgs</build_export_depend> -->
+  <!--<exec_depend>mavros_msgs</exec_depend> -->
+  
+
+  <export>
+
+  </export>
+</package>

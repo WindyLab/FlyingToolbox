@@ -1,0 +1,1 @@
+/usr/bin/cc   -O3 -O3   CMakeFiles/qdldl_example.dir/examples/example.c.o  -o out/qdldl_example -rdynamic out/libqdldl.a  -lm -lrt -ldl 

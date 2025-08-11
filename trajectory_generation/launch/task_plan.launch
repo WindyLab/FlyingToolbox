@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch> 
+    <node pkg="trajectory_generation" type="traj_solver" name="auto_pick" output="screen">
+        <rosparam command="load" file="$(find trajectory_generation)/launch/objects.yaml"/>
+        <rosparam command="load" file="$(find trajectory_generation)/launch/corridor.yaml"/>
+        <rosparam command="load" file="$(find trajectory_generation)/launch/obstacle.yaml"/>
+        <param name="bezier_order_flying" type="int" value="8"/>
+        <param name="bezier_order_end" type="int" value="12"/>
+        <param name="optimal_order_flying" type="int" value="3"/>
+        <param name="optimal_order_end" type="int" value="3"/>
+        <param name="time_to_hold" type="double" value="2.0"/>
+        <param name="velocity_to_reach" type="double" value="0.08"/>
+        <param name="acceleration_to_reach" type="double" value="0.1"/>
+        <param name="vel_end_effector" type="double" value="0.5"/>
+        <param name="acc_end_effector" type="double" value="1.0"/>
+        <param name="tan_gamma_cone" type="double" value="0.07"/>
+        <param name="time_to_cone" type="double" value="0.8"/>
+    </node>
+</launch>

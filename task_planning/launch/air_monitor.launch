@@ -1,0 +1,8 @@
+<launch>
+    <node name="airbox_monitor_node" pkg="airbox_monitor" type="airbox_monitor" output="screen">
+        <param name="rosconsole_level" value="info" />
+        <param name="topic1" value="/vicon/vpp_rk/vpp_rk" />
+        <param name="topic2" value="/vicon/ruler/ruler" />
+        <param name="collision_threshold" value="1.0" type="double"/>
+    </node>
+</launch>
