@@ -198,7 +198,6 @@ void disturbance_est::PINN_estimate(Eigen::Vector3d upper_uav_pos,Eigen::Vector3
     // Initialize function input argument 'in'.
     // Call the entry-point 'nn_predict'.
     out = nn_predict(input_nn);
-    // std::cout << out << std::endl;
     estimate_force.x =0;
     estimate_force.y =0;
     estimate_force.z =out;
@@ -215,26 +214,22 @@ void disturbance_est::PINN_estimate(Eigen::Vector3d upper_uav_pos,Eigen::Vector3
     Eigen::Vector3d r_cross={0,0,0};
     for (size_t i = 0; i < 6; i++)
     {
-      r_cross = r_cross + pos_rotor_body[i].cross(n_vec) * cd * v_rotor[i] /6.0;
+      r_cross = r_cross + pos_rotor_body[i].cross(n_vec) * cd * v_rotor[i];
     }
-    if (r_uav > 0.05 && dz_uav > 0.65)
-    {
-      estimate_torque.x = -r_cross[0];
-      estimate_torque.y = -r_cross[1] * 2.0;
-      estimate_torque.z = r_cross[2];
-    }
-    else
-    {
-      estimate_torque.x = 0.0;
-      estimate_torque.y = 0.0;
-      estimate_torque.z = 0.0;
-    }  
+    // Transform to the body frame
+    estimate_torque.x = -r_cross[0];
+    estimate_torque.y = -r_cross[1];
+    estimate_torque.z = r_cross[2];
 
+  
     if (!(r_uav < 1.5 && delta_z < 0))
     {
       estimate_force.x =0.0;
       estimate_force.y =0.0;
       estimate_force.z =0.0;
+      estimate_torque.x = 0.0;
+      estimate_torque.y = 0.0;
+      estimate_torque.z = 0.0;
     }
   }
   else
@@ -328,13 +323,8 @@ void disturbance_est::sover_estimate() {
   geometry_msgs::Vector3 estimate_force;
   geometry_msgs::Vector3 estimate_torque;
   PINN_estimate(upper_uav_pos,lower_uav_pos,estimate_force,estimate_torque);
-  estimate_torque.x   = estimate_torque.x * 3;
-  // estimate_torque.x   = 0.0;
-  // estimate_torque.y   = 0.0;
-  // estimate_torque.z   = 0.0;
-  estimate_force.z = estimate_force.z * 0.65;
-  // estimate_force_z_last = 0.8 * estimate_force_z_last + 0.2 * estimate_force.z;
-  // estimate_force.z = estimate_force_z_last;
+  
+  estimate_force.z = estimate_force.z;
   LOGFMTD("%s %f", "upper_uav_pos_x", upper_uav_pos[0]);
   LOGFMTD("%s %f", "upper_uav_pos_y", upper_uav_pos[1]);
   LOGFMTD("%s %f", "upper_uav_pos_z", upper_uav_pos[2]);
@@ -349,7 +339,6 @@ void disturbance_est::sover_estimate() {
   LOGFMTD("%s %f", "estimate_torque_x", estimate_torque.x);
   LOGFMTD("%s %f", "estimate_torque_y", estimate_torque.y);
   LOGFMTD("%s %f", "estimate_torque_z", estimate_torque.z);
-  // LOGFMTD("%s %f", "lower_uav_psi_", lower_uav_psi_);
 }
 
 int main(int argc, char **argv) {
