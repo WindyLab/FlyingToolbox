@@ -234,9 +234,6 @@ void disturbance_est_imu::Calculate_Disturbance() {
 void disturbance_est_imu::saveGroundThruth(){
   Calculate_Disturbance();
   geometry_msgs::Vector3 estimate_force;
-  // LOGFMTD("%s %f", "Disturbance_x", Disturbance_(0));
-  // LOGFMTD("%s %f", "Disturbance_y", Disturbance_(1));
-  // LOGFMTD("%s %f", "Disturbance_z", Disturbance_(2));
   estimate_force.x = Disturbance_(0);
   estimate_force.y = Disturbance_(1);
   estimate_force.z = Disturbance_(2);
