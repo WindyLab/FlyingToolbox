@@ -26,7 +26,7 @@
    </property>
    <layout class="QHBoxLayout">
     <item>
-     <widget class="QTabWidget" name="UAV_Monitor">
+     <widget class="QTabWidget" name="MAV_Monitor">
       <property name="minimumSize">
        <size>
         <width>100</width>
@@ -39,9 +39,9 @@
       <property name="currentIndex">
        <number>0</number>
       </property>
-      <widget class="QWidget" name="UAV">
+      <widget class="QWidget" name="MAV">
        <attribute name="title">
-        <string>UAV_Monitor</string>
+        <string>MAV_Monitor</string>
        </attribute>
        <widget class="QGroupBox" name="groupBox_2">
         <property name="geometry">
@@ -53,7 +53,7 @@
          </rect>
         </property>
         <property name="title">
-         <string>UAV2</string>
+         <string>MAV2</string>
         </property>
         <widget class="QWidget" name="layoutWidget_2">
          <property name="geometry">
@@ -130,7 +130,7 @@
          </rect>
         </property>
         <property name="title">
-         <string>UAV1</string>
+         <string>MAV1</string>
         </property>
         <widget class="QWidget" name="layoutWidget">
          <property name="geometry">
@@ -294,22 +294,22 @@
            </property>
            <item>
             <property name="text">
-             <string>UAV1</string>
+             <string>MAV1</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>UAV2</string>
+             <string>MAV2</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>UAV3</string>
+             <string>MAV3</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>UAV4</string>
+             <string>MAV4</string>
             </property>
            </item>
           </widget>

@@ -37,16 +37,16 @@ void MainWindow::setupConnections() {
 
     // Connect ROS communication signals
     connect(&qnode_, SIGNAL(rosShutdown()), this, SLOT(close()));
-    connect(&qnode_, SIGNAL(UAV1_updatePose(const geometry_msgs::TransformStamped&)),
-            this, SLOT(UAV1_Pose_Display(const geometry_msgs::TransformStamped&)));
-    connect(&qnode_, SIGNAL(UAV2_updatePose(const geometry_msgs::TransformStamped&)),
-            this, SLOT(UAV2_Pose_Display(const geometry_msgs::TransformStamped&)));
+    connect(&qnode_, SIGNAL(MAV1_updatePose(const geometry_msgs::TransformStamped&)),
+            this, SLOT(MAV1_Pose_Display(const geometry_msgs::TransformStamped&)));
+    connect(&qnode_, SIGNAL(MAV2_updatePose(const geometry_msgs::TransformStamped&)),
+            this, SLOT(MAV2_Pose_Display(const geometry_msgs::TransformStamped&)));
 }
 
 void MainWindow::setupInitialUI() {
     // Set window icon and initial tab
     setWindowIcon(QIcon(":/images/icon.png"));
-    ui.UAV_Monitor->setCurrentIndex(0);
+    ui.MAV_Monitor->setCurrentIndex(0);
 
     // Initialize position display fields with default values
     const QStringList lineEdits = {"lineEdit_1", "lineEdit_2", "lineEdit_3", 
@@ -109,16 +109,16 @@ void MainWindow::displayImage_2() {
     drawCirclesFromTable();
 }
 
-void MainWindow::UAV1_Pose_Display(const geometry_msgs::TransformStamped &UAV1_pose) {
+void MainWindow::MAV1_Pose_Display(const geometry_msgs::TransformStamped &MAV1_pose) {
     // Update position display in UI
-    ui.lineEdit_1->setText(QString::number(UAV1_pose.transform.translation.x));
-    ui.lineEdit_2->setText(QString::number(UAV1_pose.transform.translation.y));
-    ui.lineEdit_3->setText(QString::number(UAV1_pose.transform.translation.z));
+    ui.lineEdit_1->setText(QString::number(MAV1_pose.transform.translation.x));
+    ui.lineEdit_2->setText(QString::number(MAV1_pose.transform.translation.y));
+    ui.lineEdit_3->setText(QString::number(MAV1_pose.transform.translation.z));
 
     // Convert ROS coordinates to display coordinates
     // Note: Coordinate transformation includes scaling and offset
-    float temp_x = UAV1_pose.transform.translation.y * 100 + 500.0;  // Scale by 100 and offset by 500
-    float temp_y = UAV1_pose.transform.translation.x * 100 + 300.0;  // Scale by 100 and offset by 300
+    float temp_x = MAV1_pose.transform.translation.y * 100 + 500.0;  // Scale by 100 and offset by 500
+    float temp_y = MAV1_pose.transform.translation.x * 100 + 300.0;  // Scale by 100 and offset by 300
     QPointF new_position(temp_x, temp_y);
 
     // Validate and display position
@@ -130,16 +130,16 @@ void MainWindow::UAV1_Pose_Display(const geometry_msgs::TransformStamped &UAV1_p
 }
 
 
-void MainWindow::UAV2_Pose_Display(const geometry_msgs::TransformStamped &UAV2_pose) {
-    // Similar to UAV1 but for second UAV
+void MainWindow::MAV2_Pose_Display(const geometry_msgs::TransformStamped &MAV2_pose) {
+    // Similar to MAV1 but for second MAV
     // Update position display
-    ui.lineEdit_4->setText(QString::number(UAV2_pose.transform.translation.x));
-    ui.lineEdit_5->setText(QString::number(UAV2_pose.transform.translation.y));
-    ui.lineEdit_6->setText(QString::number(UAV2_pose.transform.translation.z));
+    ui.lineEdit_4->setText(QString::number(MAV2_pose.transform.translation.x));
+    ui.lineEdit_5->setText(QString::number(MAV2_pose.transform.translation.y));
+    ui.lineEdit_6->setText(QString::number(MAV2_pose.transform.translation.z));
 
-    // Convert coordinates with same transformation as UAV1
-    float temp_x = UAV2_pose.transform.translation.y * 100 + 500.0;
-    float temp_y = UAV2_pose.transform.translation.x * 100 + 300.0;
+    // Convert coordinates with same transformation as MAV1
+    float temp_x = MAV2_pose.transform.translation.y * 100 + 500.0;
+    float temp_y = MAV2_pose.transform.translation.x * 100 + 300.0;
     QPointF new_position(temp_x, temp_y);
 
     // Validate and display position
@@ -236,7 +236,7 @@ void MainWindow::setupTableWidget()
     ui.tableWidget->setColumnCount(13);
 
     // Set column headers
-    QStringList headers = {"UAV Id", "X", "Y", "Z", "task_type", "hold_time", "end_eff_type", 
+    QStringList headers = {"MAV Id", "X", "Y", "Z", "task_type", "hold_time", "end_eff_type", 
                     "end_eff_switch_bef", "end_eff_switch", "end_eff_switch_aft", "end_dock_offset", "docking_pick_change", "path_time"};
     ui.tableWidget->setHorizontalHeaderLabels(headers);
     ui.tableWidget->setRowCount(0);  // Initially, there are no rows
@@ -339,8 +339,8 @@ void MainWindow::removeRow() {
 }
 void MainWindow::Collision_Detection() {
     collision_threshold_ = qnode_.getCollisionThreshold();  // Get threshold from ROS params
-    // Map structure to store trajectory data for each UAV
-    // Key: UAV ID, Value: Map of time points to 3D positions
+    // Map structure to store trajectory data for each MAV
+    // Key: MAV ID, Value: Map of time points to 3D positions
     std::map<int, std::map<double, QVector3D>> allTimePositionMaps;
 
     // Process each waypoint from the table
@@ -430,15 +430,15 @@ void MainWindow::Collision_Detection() {
     // Draw all time-position mappings
     int colorIndex = 0;
     for (const auto &mapEntry : allTimePositionMaps) {
-        int uavIndex = mapEntry.first;  // Get UAV index
-        QColor color = colors[uavIndex % colors.size()];  // Get color based on UAV index
+        int MAVIndex = mapEntry.first;  // Get MAV index
+        QColor color = colors[MAVIndex % colors.size()];  // Get color based on MAV index
         
         painter.setBrush(QBrush(color));
         painter.setPen(QPen(color, 2));  // Set pen color and width
 
         for (const auto &entry : mapEntry.second) {
             QVector3D position_meter = entry.second;
-            qDebug() << "UAV:" << mapEntry.first << "Time:" << entry.first << "Position:" << position_meter;
+            qDebug() << "MAV:" << mapEntry.first << "Time:" << entry.first << "Position:" << position_meter;
 
             double y = position_meter.x() * 100 + 300;
             double x = position_meter.y() * 100 + 500;
@@ -459,9 +459,9 @@ void MainWindow::Collision_Detection() {
             double currentTime = innerTimeEntry.first;
             const QVector3D &currentPosition = innerTimeEntry.second;
 
-            // Check positions of other UAVs at the same time point
+            // Check positions of other MAVs at the same time point
             for (const auto &otherEntry : allTimePositionMaps) {
-                if (otherEntry.first != timeEntry.first) {  // Exclude same UAV
+                if (otherEntry.first != timeEntry.first) {  // Exclude same MAV
                     const auto &otherTimeMap = otherEntry.second;
                     auto it = otherTimeMap.find(currentTime);
                     if (it != otherTimeMap.end()) {
@@ -470,8 +470,8 @@ void MainWindow::Collision_Detection() {
                             QMessageBox::warning(this, "Collision Warning",
                                                  QString("Collision detected!\n"
                                                          "Time: %1\n"
-                                                         "UAV %2 Position: (%3, %4, %5)\n"
-                                                         "UAV %6 Position: (%7, %8, %9)")
+                                                         "MAV %2 Position: (%3, %4, %5)\n"
+                                                         "MAV %6 Position: (%7, %8, %9)")
                                                      .arg(currentTime)
                                                      .arg(timeEntry.first)
                                                      .arg(currentPosition.x())

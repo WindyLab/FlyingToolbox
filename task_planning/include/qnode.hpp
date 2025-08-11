@@ -1,6 +1,6 @@
 /**
  * @file /include/task_planning/qnode.hpp
- * @brief ROS communication node for UAV monitoring
+ * @brief ROS communication node for MAV monitoring
  */
 
 #ifndef TASK_PLANNING_QNODE_HPP_
@@ -34,21 +34,21 @@ public:
     void run();
 
     // ROS Callbacks
-    void UAV1_pose_cb(const geometry_msgs::TransformStamped::ConstPtr& msg);
-    void UAV2_pose_cb(const geometry_msgs::TransformStamped::ConstPtr& msg);
+    void MAV1_pose_cb(const geometry_msgs::TransformStamped::ConstPtr& msg);
+    void MAV2_pose_cb(const geometry_msgs::TransformStamped::ConstPtr& msg);
     double getCollisionThreshold() const { return collision_threshold_; }
 
 Q_SIGNALS:
-    void UAV1_updatePose(const geometry_msgs::TransformStamped& pose);
-    void UAV2_updatePose(const geometry_msgs::TransformStamped& pose);
+    void MAV1_updatePose(const geometry_msgs::TransformStamped& pose);
+    void MAV2_updatePose(const geometry_msgs::TransformStamped& pose);
     void rosShutdown();
 
 private:
     int init_argc_;
     char** init_argv_;
     double collision_threshold_;  // Store collision threshold from parameter server
-    ros::Subscriber uav1_pose_sub_;
-    ros::Subscriber uav2_pose_sub_;
+    ros::Subscriber MAV1_pose_sub_;
+    ros::Subscriber MAV2_pose_sub_;
 };
 
 }  // namespace task_planning

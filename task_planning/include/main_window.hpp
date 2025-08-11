@@ -1,9 +1,9 @@
 /**
  * @file main_window.hpp
- * @brief Qt-based GUI for UAV Monitoring and Motion Planning
+ * @brief Qt-based GUI for MAV Monitoring and Motion Planning
  * 
  * This application provides:
- * - Real-time UAV position monitoring
+ * - Real-time MAV position monitoring
  * - Motion trajectory planning
  * - Collision detection
  * - Task configuration and generation
@@ -66,8 +66,8 @@ public Q_SLOTS:
     // UI event handlers
     void on_button_connect_clicked();
     void showNoMasterMessage();
-    void UAV1_Pose_Display(const geometry_msgs::TransformStamped& pose);
-    void UAV2_Pose_Display(const geometry_msgs::TransformStamped& pose);
+    void MAV1_Pose_Display(const geometry_msgs::TransformStamped& pose);
+    void MAV2_Pose_Display(const geometry_msgs::TransformStamped& pose);
     void removeRow();
     void generateYamlFile();
     void Collision_Detection();

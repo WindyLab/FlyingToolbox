@@ -4,8 +4,8 @@ namespace task_planning {
 
 namespace {
     // Static variables for storing current poses
-    geometry_msgs::TransformStamped current_pose_uav1_;
-    geometry_msgs::TransformStamped current_pose_uav2_;
+    geometry_msgs::TransformStamped current_pose_MAV1_;
+    geometry_msgs::TransformStamped current_pose_MAV2_;
 }
 
 QNode::QNode(int argc, char** argv)
@@ -22,14 +22,14 @@ QNode::~QNode() {
     wait();
 }
 
-void QNode::UAV1_pose_cb(const geometry_msgs::TransformStamped::ConstPtr &msg) {
-    current_pose_uav1_ = *msg;
-    Q_EMIT UAV1_updatePose(current_pose_uav1_);
+void QNode::MAV1_pose_cb(const geometry_msgs::TransformStamped::ConstPtr &msg) {
+    current_pose_MAV1_ = *msg;
+    Q_EMIT MAV1_updatePose(current_pose_MAV1_);
 }
 
-void QNode::UAV2_pose_cb(const geometry_msgs::TransformStamped::ConstPtr &msg) {
-    current_pose_uav2_ = *msg;
-    Q_EMIT UAV2_updatePose(current_pose_uav2_);
+void QNode::MAV2_pose_cb(const geometry_msgs::TransformStamped::ConstPtr &msg) {
+    current_pose_MAV2_ = *msg;
+    Q_EMIT MAV2_updatePose(current_pose_MAV2_);
 }
 
 bool QNode::init() {
@@ -53,11 +53,11 @@ bool QNode::init() {
     ROS_INFO("topic1 is: %s", topic1.c_str());
     ROS_INFO("topic2 is: %s", topic2.c_str());
 
-    // Subscribe to UAV pose topics
-    uav1_pose_sub_ = n.subscribe<geometry_msgs::TransformStamped>(
-        topic1, 10, &QNode::UAV1_pose_cb, this);
-    uav2_pose_sub_ = n.subscribe<geometry_msgs::TransformStamped>(
-        topic2, 10, &QNode::UAV2_pose_cb, this);
+    // Subscribe to MAV pose topics
+    MAV1_pose_sub_ = n.subscribe<geometry_msgs::TransformStamped>(
+        topic1, 10, &QNode::MAV1_pose_cb, this);
+    MAV2_pose_sub_ = n.subscribe<geometry_msgs::TransformStamped>(
+        topic2, 10, &QNode::MAV2_pose_cb, this);
 
     start();
     return true;

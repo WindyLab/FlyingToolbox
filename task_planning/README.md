@@ -20,7 +20,7 @@ Developed based on task requirements and a state machine architecture, this pack
 
 - Add waypoints by clicking
 
-- Support for multi-UAV trajectory planning
+- Support for multi-MAVs trajectory planning
 
 - Allow editing and deleting trajectories
 
@@ -28,28 +28,28 @@ Developed based on task requirements and a state machine architecture, this pack
 
 - Automatically generate task configuration files
   
-- <img src="images\Task_Planning.png" width="100%">The operational workflow proceeds as follows: First, select the UAV number from the dropdown menu on the right, then click any position on the visualization interface above to set waypoints. Each click adds new waypoint information to the table below, where parameters like task type and execution duration can be modified. Repeated clicking generates a complete task sequence. To program additional UAVs, simply select different identification numbers and repeat the waypoint editing process.
+- <img src="images\Task_Planning.png" width="100%">The operational workflow proceeds as follows: First, select the MAV number from the dropdown menu on the right, then click any position on the visualization interface above to set waypoints. Each click adds new waypoint information to the table below, where parameters like task type and execution duration can be modified. Repeated clicking generates a complete task sequence. To program additional MAVs, simply select different identification numbers and repeat the waypoint editing process.
 
-After completing all UAV task sequences, click the `Collision Detection` button to automatically perform collision verification. The system will display risk alerts if potential conflicts are detected.
+After completing all MAV task sequences, click the `Collision Detection` button to automatically perform collision verification. The system will display risk alerts if potential conflicts are detected.
 
-When the trajectory validation confirms collision-free operation, clicking the `Generate Task` button produces the required `corridor.yaml` configuration file containing the coordinated multi-UAV mission parameters.
+When the trajectory validation confirms collision-free operation, clicking the `Generate Task` button produces the required `corridor.yaml` configuration file containing the coordinated multi-MAV mission parameters.
 
 - Usage:
   ```bash
   roslaunch task_planning task_planning.launch
   ```
 
-##### 	Real-time Monitoring (UAV_monitor)
+##### 	Real-time Monitoring (MAV_monitor)
 
-- Display real-time UAV positions
+- Display real-time MAV positions
 
 - Coordinate transformation and visualization
 
 - Position validity checks
 
-- <img src="images\UAV_Monitor.png" width="100%">
+- <img src="images\MAV_Monitor.png" width="100%">
 
   
 
-  Modify the topic name in the `task_planning.launch` file to match the target UAV's designation that requires monitoring. Click the `Connect` button to establish a connection with the ROS system, and the corresponding UAV's position will be displayed in the interface shown above. The software can be exited by clicking `Quit`.
+  Modify the topic name in the `task_planning.launch` file to match the target MAV's designation that requires monitoring. Click the `Connect` button to establish a connection with the ROS system, and the corresponding MAV's position will be displayed in the interface shown above. The software can be exited by clicking `Quit`.
 
