@@ -238,7 +238,7 @@ Run the following code to launch the QT interface for task planning.
 ```bash
 roslaunch task_planning task_planning.launch
 ```
-<img src="/home/kantsky/Test/catkin_flyingtoolboxcode/src/FlyingToolbox/task_planning/images\Task_Planning.png" width="60%">
+<img src="images\Task_Planning.png" width="60%">
 
 **Task Planning Workflow:** First, select a MAV ID from the dropdown menu on the right, then click on the visualization interface to set waypoints—each click adds a new waypoint to the table below (where parameters like task type and duration can be modified), with repeated clicks constructing the complete mission sequence. To program additional MAVs, simply select different IDs and repeat the waypoint editing process. After configuring all MAV trajectories, click the Collision Detectionbutton to automatically validate paths and receive conflict alerts. Once collision-free operation is confirmed, click Generate Taskto output the multi-MAV coordination configuration file corridor.yaml.
 
