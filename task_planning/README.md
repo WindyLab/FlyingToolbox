@@ -27,9 +27,8 @@ Developed based on task requirements and a state machine architecture, this pack
 - Support collision detection
 
 - Automatically generate task configuration files
-  ![UAV_Monitor](.\images\Task_Planning.png)
-
-The operational workflow proceeds as follows: First, select the UAV number from the dropdown menu on the right, then click any position on the visualization interface above to set waypoints. Each click adds new waypoint information to the table below, where parameters like task type and execution duration can be modified. Repeated clicking generates a complete task sequence. To program additional UAVs, simply select different identification numbers and repeat the waypoint editing process.
+  
+- <img src="images\Task_Planning.png" width="100%">The operational workflow proceeds as follows: First, select the UAV number from the dropdown menu on the right, then click any position on the visualization interface above to set waypoints. Each click adds new waypoint information to the table below, where parameters like task type and execution duration can be modified. Repeated clicking generates a complete task sequence. To program additional UAVs, simply select different identification numbers and repeat the waypoint editing process.
 
 After completing all UAV task sequences, click the `Collision Detection` button to automatically perform collision verification. The system will display risk alerts if potential conflicts are detected.
 
@@ -48,7 +47,9 @@ When the trajectory validation confirms collision-free operation, clicking the `
 
 - Position validity checks
 
-  ![UAV_Monitor](.\images\UAV_Monitor.png)
+- <img src="images\UAV_Monitor.png" width="100%">
+
+  
 
   Modify the topic name in the `task_planning.launch` file to match the target UAV's designation that requires monitoring. Click the `Connect` button to establish a connection with the ROS system, and the corresponding UAV's position will be displayed in the interface shown above. The software can be exited by clicking `Quit`.
 
