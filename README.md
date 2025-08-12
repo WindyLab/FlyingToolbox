@@ -48,7 +48,7 @@ The mechanical_design folder contains the 3D  models of the Toolbox MAV, the Del
 
 <hr style="height:2px;border-width:0;color:#ff0000;background-color:#00aaff">
 
-# 2) Disturbance estimation 
+# 2) Disturbance Dstimation 
 The source code for disturbance estimation is located in the disturbance_estimation folder. This source code is a ROS package named "disturbance_estimation".
 
 ### System requirements
