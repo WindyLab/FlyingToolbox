@@ -2,54 +2,33 @@
 
 This package facilitates mission planning operations for the FlyingToolbox system.
 
-### Hardware
+### System Requirements
 
-This package operates without requiring additional hardware components.
+This package operates on Ubuntu 18.04 or 20.04 systems with both [ROS installed](https://wiki.ros.org/ROS/Installation) and [Mavros configured](https://docs.px4.io/v1.14/zh/ros/mavros_installation.html), requiring at least 2GB of RAM. Our testing has verified stable and smooth performance on both an Intel NUC12WSHi5 onboard computer and an NVIDIA Jetson Xavier NX development kit featuring a 6-core NVIDIA Carmel ARMv8.2 64-bit CPU cluster. 
 
-### Method
+### Install dependencies & build 
 
-Developed based on task requirements and a state machine architecture, this package enables discrete waypoint planning while ensuring safe multi-MAV collaborative operations. The manipulator MAV's operational workflow is implemented as a five-state finite state machine (Move, Wait, Operate, Mount Tool, Switch Tool, and Release Tool), while the toolbox MAV follows a simplified two-state model (Move and Wait). All generated discrete waypoint paths for each MAV are stored in a corridor.yaml configuration file, maintaining spatial-temporal coordination parameters and safety constraints for the entire multi-rotor system.
+This package requires MAVROS as a dependency. For installation and usage instructions, please refer to: https://github.com/mavlink/mavros.git. Execute the following commands to  install all dependencies.
 
-<img src="images\fig_task_plan_methoad.jpg" width="100%">
+```bash
+# Qt5 
+sudo apt-get install qtbase5-dev             
+sudo apt-get install libqt5widgets5
+sudo apt-get install qt5-qmake              
+sudo apt-get install qtdeclarative5-dev
+```
 
+### Demo execution
 
+Run the following code to launch the QT interface ( see following figure) for task planning.
 
-### Description for the nodes
+```bash
+roslaunch task_planning task_planning.launch
+```
 
-##### Trajectory Planning (Task Plan)
+<div align="center">
+<img src="readme_images\Task_Planning.png" width="60%">
+</div>
 
-- Add waypoints by clicking
-
-- Support for multi-MAVs trajectory planning
-
-- Allow editing and deleting trajectories
-
-- Support collision detection
-
-- Automatically generate task configuration files
-  
-- <img src="images\Task_Planning.png" width="100%">The operational workflow proceeds as follows: First, select the MAV number from the dropdown menu on the right, then click any position on the visualization interface above to set waypoints. Each click adds new waypoint information to the table below, where parameters like task type and execution duration can be modified. Repeated clicking generates a complete task sequence. To program additional MAVs, simply select different identification numbers and repeat the waypoint editing process.
-
-After completing all MAV task sequences, click the `Collision Detection` button to automatically perform collision verification. The system will display risk alerts if potential conflicts are detected.
-
-When the trajectory validation confirms collision-free operation, clicking the `Generate Task` button produces the required `corridor.yaml` configuration file containing the coordinated multi-MAV mission parameters.
-
-- Usage:
-  ```bash
-  roslaunch task_planning task_planning.launch
-  ```
-
-##### 	Real-time Monitoring (MAV_monitor)
-
-- Display real-time MAV positions
-
-- Coordinate transformation and visualization
-
-- Position validity checks
-
-- <img src="images\MAV_Monitor.png" width="100%">
-
-  
-
-  Modify the topic name in the `task_planning.launch` file to match the target MAV's designation that requires monitoring. Click the `Connect` button to establish a connection with the ROS system, and the corresponding MAV's position will be displayed in the interface shown above. The software can be exited by clicking `Quit`.
+Task Planning Workflow: First, select a MAV ID from the dropdown menu on the right, then click on the visualization interface to set waypoints—each click adds a new waypoint to the table below (where parameters like task type and duration can be modified), with repeated clicks constructing the complete mission sequence. To program additional MAVs, simply select different IDs and repeat the waypoint editing process. After configuring all MAV trajectories, click the Collision Detectionbutton to automatically validate paths and receive conflict alerts. Once collision-free operation is confirmed, click Generate Task to output the multi-MAV coordination configuration file corridor.yaml.
 

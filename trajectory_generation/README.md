@@ -2,14 +2,32 @@
 
 This package is used to implement trajectory generation for MAVs. The operation of this package depends on the results from the task_planning package.
 
-### Method
-The operation procedure of the manipulator MAV is represented as a simple state machine with five states: move, wait, operate, mount tool, switch tool, and release tool. The operation of the toolbox MAV corresponds to two states: move and wait. Motion trajectories for both the manipulator MAV and toolbox MAV are generated using a Bezier curve-based method, which incorporates flight corridor and trajectory generation. Safe flight corridors are established by considering only static obstacles, ensuring that MAVs do not enter the same area simultaneously to avoid collisions.
-<img src="images\fig_traj_gen_methoad.jpg" width="100%">
+### System requirements
 
+This package operates on Ubuntu 18.04 or 20.04 systems with both [ROS installed](https://wiki.ros.org/ROS/Installation) and [Mavros configured](https://docs.px4.io/v1.14/zh/ros/mavros_installation.html), requiring at least 2GB of RAM. Our testing has verified stable and smooth performance on both an Intel NUC12WSHi5 onboard computer and an NVIDIA Jetson Xavier NX development kit featuring a 6-core NVIDIA Carmel ARMv8.2 64-bit CPU cluster. 
 
+### Install dependencies & build 
 
-Before running this code, you need to save the task planning results as a YAML file in the launch folder and rename it to corridor.yaml.
+This package requires OSQP as a dependency. For installation and usage instructions, please refer to: https://github.com/osqp/osqp.git. Additionally, since it involves substantial computations, it also  depends on the ROS Eigen library. Execute the following commands to  install all dependencies.
 
-- **Input**: corridor.yaml (generated from task planning)
-- **Output**: The trajectory_result provides the MAV's real-time desired position, desired velocity, and desired acceleration.
+```bash
+sudo apt-get install ros-noetic-eigen-conversions
+```
 
+ Build the package:
+
+   ```bash
+catkin build 
+   ```
+
+### Demo execution
+
+Before running this package, you need task planning result from the task_planning package.
+
+Run the following code to launch the trajectory planning.
+
+```bash
+roslaunch trajectory_generation trajectory_generation.launch
+```
+
+  - Output: Publishes the reference via  `/trajectory_result` service messages.
