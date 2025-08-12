@@ -22,7 +22,9 @@ This GitHub repository provides open-source materials for *FlyingToolbox*, inclu
 
 </div>
 
-The first folder contains 3D model files that can be directly opened  by CAD software without requiring additional installation or  compilation. The remaining four folders (disturbance_estimation, visual_sensing, trajectory_generation, and task_planning) are [ROS packages](https://wiki.ros.org/). To use them, the source code must be downloaded and compiled on your local machine before execution. 
+The first folder contains 3D model files that can be directly opened  by CAD software without requiring additional installation or  compilation. 
+
+The remaining four folders (disturbance_estimation, visual_sensing, trajectory_generation, and task_planning) are [ROS packages](https://wiki.ros.org/). To use them, the source code must be downloaded and compiled on your local machine before execution. 
 
 These files can be downloaded to your computer using git commands. The specific instructions are as follows:
 
@@ -33,10 +35,8 @@ These files can be downloaded to your computer using git commands. The specific 
 
 <hr style="height:2px;border-width:0;color:#ff0000;background-color:#00aaff">
 <hr style="height:2px;border-width:0;color:#ff0000;background-color:#00aaff">
-<hr style="height:2px;border-width:0;color:#ff0000;background-color:#00aaff">
 
-
-# 3D Modeling Files
+# 1) 3D Modeling Files
 
 The 3D Modeling Files folder contains the 3D  models of the Toolbox MAV, the Delta arm, and six end-effector tools  (including a two-finger gripper, three-finger soft electromagnet tool,  scissor tool, liquid inspection tool, and adhesive spraying tool).  These tools enable distinct functions including grasping, cutting,  magnetic attraction, liquid inspection, and adhesive spraying  (see the following figure). All  models are provided in STEP (.stp) format, ensuring seamless compatibility with major CAD software (e.g., SolidWorks,  CATIA) for mechanical design, assembly simulation, and other engineering applications. 
 
@@ -44,7 +44,7 @@ The 3D Modeling Files folder contains the 3D  models of the Toolbox MAV, the Del
 
 <hr style="height:2px;border-width:0;color:#ff0000;background-color:#00aaff">
 
-# Disturbance estimation 
+# 2) Disturbance estimation 
 The source code for disturbance estimation is located in the disturbance_estimation folder. This source code is a ROS package named "disturbance_estimation".
 
 ### System Requirements
@@ -112,7 +112,7 @@ This package contains three nodes, whose functionalities and usage methods are d
 
 <hr style="height:2px;border-width:0;color:#ff0000;background-color:#00aaff">
 
-# Visual sensing 
+# 3) Visual sensing 
 The source code for Visual sensing is located in the **visual_sensing** folder. This source code is a ROS package named **"visual_sensing"**.
 
 ### System Requirements
@@ -176,7 +176,7 @@ This package utilizes the OpenCV library and Intel RealSense SDK for its core fu
 
 <hr style="height:2px;border-width:0;color:#ff0000;background-color:#00aaff">
 
-# Trajectory generation 
+# 4) Trajectory generation 
 
 The source code for disturbance estimation is located in the trajectory_generation folder. This source code is a ROS package named trajectory_generation.
 
@@ -211,7 +211,7 @@ Run the following code to launch the trajectory planning.
 
 <hr style="height:2px;border-width:0;color:#ff0000;background-color:#00aaff">
 
-# Trajectory planning 
+# 5) Trajectory planning 
 
 The source code for disturbance estimation is located in the trajectory_planning folder. This source code is a ROS package named "task_planning".
 
