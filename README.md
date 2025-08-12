@@ -14,7 +14,7 @@ This GitHub repository provides open-source materials for *FlyingToolbox*, inclu
 
 | Folder names | Contents |
 |:--------:|:----:|
-| 3D Modeling Files | Files for the mechanical design |
+| 3D modeling files | Files for the mechanical design |
 | disturbance_estimation | Source code used for disturbance estimation |
 | visual_sensing | Source code used for visual sensing |
 | trajectory_generation | Source code used for trajectory generation|
