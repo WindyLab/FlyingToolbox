@@ -218,9 +218,9 @@ roslaunch trajectory_generation trajectory_generation.launch
 
 <hr style="height:2px;border-width:0;color:#ff0000;background-color:#00aaff">
 
-# 5) Trajectory Planning 
+# 5) Task Planning 
 
-The source code for disturbance estimation is located in the trajectory_planning folder. This source code is a ROS package named "task_planning".
+The source code for disturbance estimation is located in the task_planning folder. This source code is a ROS package named "task_planning".
 
 ### System Requirements
 
