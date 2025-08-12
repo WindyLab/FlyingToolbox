@@ -1,10 +1,11 @@
 <div align="center">
     <h1>Proximal cooperative aerial manipulation with vertically stacked drones</h1>
-    <br>Huazi Cao, Jiahao Shen, Yin Zhang, Zheng Fu, Cunjia Liu, Sihao Sun</br>
     <br> </br>
 </div>
 
-This GitHub repository provides open-source materials for **FlyingToolbox**, including mechanical design files and source code for disturbance estimation, visual sensing, trajectory generation, and task planning.  **FlyingToolbox** is a cooperative aerial manipulation system and consists of a toolbox MAV and a manipulator MAV.  The toolbox MAV carries a toolbox that contains a set of end-effector tools for dedicated tasks such as grasping, cutting, and inspection. The manipulator MAV flies above the toolbox MAV and can autonomously dock with any tool using its robotic arm. After completing a manipulation task, the manipulator MAV can return the tool back to the toolbox MAV or switch to another to perform a different task. 
+
+
+This GitHub repository provides open-source materials for *FlyingToolbox*, including mechanical design files and source code for disturbance estimation, visual sensing, trajectory generation, and task planning.  FlyingToolbox is a cooperative aerial manipulation system and consists of a toolbox MAV and a manipulator MAV.  The toolbox MAV carries a toolbox that contains a set of end-effector tools for dedicated tasks such as grasping, cutting, and inspection. The manipulator MAV flies above the toolbox MAV and can autonomously dock with any tool using its robotic arm. After completing a manipulation task, the manipulator MAV can return the tool back to the toolbox MAV or switch to another to perform a different task. 
 
 # File Summary
 
@@ -20,6 +21,8 @@ This GitHub repository provides open-source materials for **FlyingToolbox**, inc
 | task_planning |  Source code used for task planning|
 
 </div>
+
+
 
 # System Requirements
 
@@ -81,6 +84,12 @@ The repository development version is tested on *Linux* operating systems. The d
 
 2. Install dependencies:
 
+   - 首先需要安装ROS的Noetic版本
+     ```bash
+     sudo apt install ros-noetic-desktop-full
+     sudo apt install ros-noetic-mavros-msgs 
+     
+     ```
 
    - Disturbance estimation:
       This package utilizes MATLAB Coder for neural network code generation. For detailed technical specifications, please refer to the documentation at: https://ww2.mathworks.cn/help/coder/deep-learning-code-generation-fundamentals.html?s_tid=CRUX_lftnav. Additionally, the following dependencies must be installed to execute the generated code.
@@ -109,9 +118,9 @@ The repository development version is tested on *Linux* operating systems. The d
      ```bash
      # Qt5 
      sudo apt-get install qtbase5-dev             
-     sudo apt-get install libqt5widgets5-dev      
+     sudo apt-get install libqt5widgets5
      sudo apt-get install qt5-qmake              
-     sudo apt-get install qtdeclarative5-dev     
+     sudo apt-get install qtdeclarative5-dev
      ```
      Additionally, this package requires MAVROS as a dependency. For installation and usage instructions, please refer to: https://github.com/mavlink/mavros.git.
 3. Build the project:
@@ -185,7 +194,7 @@ The repository development version is tested on *Linux* operating systems. The d
 
 - **`cali_camera`**: This node performs camera hand-eye calibration. It requires both a motion capture system and a specially designed calibration target (see diagram below).
 
-  <img src="images\fig_cail.jpg" width="60%">
+  <img src="readme_images\fig_cail.jpg" width="60%">
 
   Before running this node, it is necessary to first select the output poses of the manipulator MAV, calibration tool, and camera in the motion capture system. The corresponding topics are `/vicon/Turing/Turing`, `/vicon/ruler/ruler`, and `/vicon/realsense/realsense`, respectively. Note that when placing the `calibration tool`, its coordinate system must align with the toolbox MAV's coordinate system. Then, run the following program to generate the parameter file `calibration_trans_drone_cam.txt`.
 
@@ -214,7 +223,7 @@ The repository development version is tested on *Linux* operating systems. The d
 
   - Output: Publishes the relative position topic `/tool_box_pos`.
 
-  <img src="images\fig_docking_with_visual_sensing.jpg" width="60%">
+  <img src="readme_images\fig_docking_with_visual_sensing.jpg" width="60%">
 
 ### 3. Trajectory planning
 
@@ -236,7 +245,7 @@ Run the following code to launch the QT interface for task planning.
 ```bash
 roslaunch task_planning task_planning.launch
 ```
-<img src="images\Task_Planning.png" width="60%">
+<img src="readme_images\Task_Planning.png" width="60%">
 
 **Task Planning Workflow:** First, select a MAV ID from the dropdown menu on the right, then click on the visualization interface to set waypoints—each click adds a new waypoint to the table below (where parameters like task type and duration can be modified), with repeated clicks constructing the complete mission sequence. To program additional MAVs, simply select different IDs and repeat the waypoint editing process. After configuring all MAV trajectories, click the Collision Detectionbutton to automatically validate paths and receive conflict alerts. Once collision-free operation is confirmed, click Generate Taskto output the multi-MAV coordination configuration file corridor.yaml.
 
