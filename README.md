@@ -151,8 +151,9 @@ This package utilizes the OpenCV library and Intel RealSense SDK for its core fu
   - Output: Publishes the image topic `/camera/realsense`.
 
 - **`cali_camera`**: This node performs camera hand-eye calibration. It requires both a motion capture system and a specially designed calibration target (see diagram below).
-
+<div align="center">
   <img src="readme_images\fig_cail.jpg" width="60%">
+</div>
 
   Before running this node, it is necessary to first select the output poses of the manipulator MAV, calibration tool, and camera in the motion capture system. The corresponding topics are `/vicon/Turing/Turing`, `/vicon/ruler/ruler`, and `/vicon/realsense/realsense`, respectively. Note that when placing the `calibration tool`, its coordinate system must align with the toolbox MAV's coordinate system. Then, run the following program to generate the parameter file `calibration_trans_drone_cam.txt`.
 
