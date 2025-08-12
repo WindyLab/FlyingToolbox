@@ -30,38 +30,14 @@ generate_messages(
 
 catkin_package( CATKIN_DEPENDS std_msgs)
 
-add_executable(offline_calculate src/offline_calculate.cc)
-
-## Use this on NUC
-target_link_libraries(offline_calculate  ${catkin_LIBRARIES} ) #${OpenCV_LIBS}
-
-## Use this on my computer
-##target_link_libraries(offline_calculate  ${OpenCV_LIBS} ${catkin_LIBRARIES} )
-
 add_executable(cali_camera src/cali_camera.cc src/pose_filter.cc)
 target_link_libraries(cali_camera  ${catkin_LIBRARIES} realsense2::realsense2) #${OpenCV_LIBS}
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
   )
-  add_executable(realsense src/realsense.cc src/log4z.cpp src/pose_filter.cc)
-  add_executable(onboard_camera_video src/onboard_camera_video.cc src/log4z.cpp)
+add_executable(realsense src/realsense.cc src/log4z.cpp src/pose_filter.cc)
 
 ## Use this on NUC
 target_link_libraries(realsense ${catkin_LIBRARIES}) #${OpenCV_LIBS}
-target_link_libraries(onboard_camera_video ${catkin_LIBRARIES}) #${OpenCV_LIBS}
 
-
-# add_executable(detect_marker
-#   src/test_node.cpp
-#   ${${PROJECT_NAME}_CPP_SOURCES}
-# )
-# add_dependencies(test_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-# target_link_libraries(test_node
-#   ${catkin_LIBRARIES}
-#   ${Boost_LIBRARIES}
-# )
-
-
-## Use this on my computer
-##target_link_libraries(realsense ${OpenCV_LIBS} ${catkin_LIBRARIES}) #${OpenCV_LIBS}

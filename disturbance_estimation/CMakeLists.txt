@@ -8,7 +8,6 @@ find_package(catkin REQUIRED COMPONENTS
   serial
   mavros_msgs
 )
-find_package(gazebo REQUIRED)
 
 find_package(OpenMP REQUIRED)
 if(OPENMP_FOUND)
@@ -36,7 +35,6 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
-  ${GAZEBO_INCLUDE_DIRS}
   
 )
 

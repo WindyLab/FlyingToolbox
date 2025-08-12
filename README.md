@@ -82,6 +82,12 @@ The repository development version is tested on *Linux* operating systems. The d
 
 2. Install dependencies:
 
+   - 首先需要安装ROS的Noetic版本
+     ```bash
+     sudo apt install ros-noetic-desktop-full
+     sudo apt install ros-noetic-mavros-msgs 
+
+     ```
 
    - Disturbance estimation:
       This package utilizes MATLAB Coder for neural network code generation. For detailed technical specifications, please refer to the documentation at: https://ww2.mathworks.cn/help/coder/deep-learning-code-generation-fundamentals.html?s_tid=CRUX_lftnav. Additionally, the following dependencies must be installed to execute the generated code.
@@ -110,9 +116,9 @@ The repository development version is tested on *Linux* operating systems. The d
      ```bash
      # Qt5 
      sudo apt-get install qtbase5-dev             
-     sudo apt-get install libqt5widgets5-dev      
+     sudo apt-get install libqt5widgets5
      sudo apt-get install qt5-qmake              
-     sudo apt-get install qtdeclarative5-dev     
+     sudo apt-get install qtdeclarative5-dev
      ```
      Additionally, this package requires MAVROS as a dependency. For installation and usage instructions, please refer to: https://github.com/mavlink/mavros.git.
 3. Build the project:
