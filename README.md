@@ -41,7 +41,7 @@ These files can be downloaded to your computer using git commands. The specific 
 
 # 1) Mechanical Design 
 
-The mechanical_design folder contains the 3D  models of the Toolbox MAV, the Delta arm, and six end-effector tools  (including a two-finger gripper, three-finger soft electromagnet tool,  scissor tool, liquid inspection tool, and adhesive spraying tool).  These tools enable distinct functions including grasping, cutting,  magnetic attraction, liquid inspection, and adhesive spraying  (see the following figure). All  models are provided in STEP (.stp) format, ensuring seamless compatibility with major CAD software (e.g., SolidWorks,  CATIA) for mechanical design, assembly simulation, and other engineering applications. 
+The mechanical_design folder contains the 3D  models of the Toolbox MAV, the Delta arm, and six end-effector tools  (including a two-finger gripper, three-finger soft electromagnet tool,  scissor tool, liquid inspection tool, and adhesive spraying tool).  These tools enable distinct functions, including grasping, cutting,  magnetic attraction, liquid inspection, and adhesive spraying  (see the following figure). All  models are provided in STEP (.stp) format, ensuring seamless compatibility with major CAD software (e.g., SolidWorks,  CATIA) for mechanical design, assembly simulation, and other engineering applications. 
 <div align="center">
 <img src="readme_images\fig_tools_2.jpg" width="60%">
 </div>
@@ -53,7 +53,7 @@ The source code for disturbance estimation is located in the disturbance_estimat
 
 ### System requirements
 
-This package operates on Ubuntu 18.04 or 20.04 systems with both [ROS installed](https://wiki.ros.org/ROS/Installation) and [Mavros configured](https://docs.px4.io/v1.14/zh/ros/mavros_installation.html), requiring at least 2GB of RAM. Our testing has verified stable and smooth performance on both an Intel NUC12WSHi5 onboard computer and an NVIDIA Jetson Xavier NX development kit featuring a 6-core NVIDIA Carmel ARMv8.2 64-bit CPU cluster. The disturbance_estimation package supports collecting ground truth data of disturbance forces acting on the UAV. When ground truth force data  is unnecessary and the package is solely used for disturbance  estimation, it only requires position information of both the toolbox  MAV and manipulator MAV, which we recommend obtaining through a motion  capture system. For cases requiring ground truth disturbance force  collection, in addition to the aforementioned position data, the package also needs rotor speed information from the toolbox MAV and its  acceleration data. We recommend using a combination of a [T-Motor 501-X motor and ESC integrated kit](https://item.taobao.com/item.htm?_u=a22o13el43d2&id=606577444356&pisk=g1czsB_zQQdrNiZ8EjNFbs5vdWP81W-6xXZQ-203PuqkpzOhT2ugRUKpyxznAmLpy7g3YDobD6aBeHCE00giF8iIFk43mm05NkO8LDusXD1BwYahTmgLKDGEJ6zn-DL8AUpjy4FLtht6TCg-yHSI8Wlzro0mkyslqKwlUIuWlht61BJloW-yfD1Z3KR07PV3rJfhnEzarzV3Ku0Duy4Cq9foxE84yP5hxzqhoI4Lm9q3-zjcmPUGt_4u-Eu0DP5utWm3iEzKgvm-vGagEEjRPXZdWHyuj4qVt1bTq8mw6oChFj4zXO3z0qgjgzyzjJmsgzGoc2cSw-pPEW3jQDknjn67qAzZ0RMyb_oZ2y0U-0RO7ocr8jy-hgXu77rzIbmcWs3aKxl4NbxdBqg4qRPjhKK7d7orBlekHnnEuuina-jyckMslb2qjn1qvJknNSckmCSyaMUmMxlKUMXUErU4fE84Ln01IOT4bXBdp-2gulT8K9BLErU4fE8Vp9eRsrr6yJf..&spm=a1z09.2.0.0.78ef2e8dyWEVzq) and an [ALPHA DATA LINK v2 acquisition system](https://item.taobao.com/item.htm?_u=a22o13el23c8&id=643443876894&pisk=guX4s6m2T-e2Z78viT9Z8Yk81dJvKdzQSOT6jGjMcEY06nwiQGSHfoUTD_-G5aETDKsM7N7WyAt_MPHNzZshGI_1GFxMrajjhFwv_NSCJNM_HstiQas9sN6NXA-GjNEv5oF5Dip9IyaQQJsADPu1bdW2mbcl2himm7Omg8SbVyaQdRPmqdz4RNMFacekYHvMmCDiZu-emnvMsEAu4hxsofDcSuryDHkiSnYiq8x9rfDMoFxkrnKKsVcDSuSkyhkMIdbMEu-tgT_AW2tHiu0xcOTtXAAJ-iYrIvmpoIX7pUMiuTx2JySXz3t5UnR2-CbCUn6cPGXfHQFqidI5TN5G-zGXo6-FzB148x7FkhjwjZyKYUXVbTRANqcDYK82ttbovYIes_Wyht4t9gsyoBJ5N7UX1K7V9ed0wzQN4E_G3Q04PF1CVtAP-zMPWC5GhLX0rJSPTVKle_WOgVcwi3KyRury_zjItXZy8Oht6QAH4eZvsfh9i3KyRurr6fdxK38QDCf..&spm=a1z09.2.0.0.78ef2e8dyWEVzq&skuId=4633424884192) to  acquire rotor speed measurements, while employing a HWT905 IMU for acceleration  data acquisition.
+This package operates on Ubuntu 18.04 or 20.04 systems with both [ROS installed](https://wiki.ros.org/ROS/Installation) and [Mavros configured](https://docs.px4.io/v1.14/zh/ros/mavros_installation.html), requiring at least 2GB of RAM. Our testing has verified stable and smooth performance on both an Intel NUC12WSHi5 onboard computer and an NVIDIA Jetson Xavier NX development kit featuring a 6-core NVIDIA Carmel ARMv8.2 64-bit CPU cluster. The disturbance_estimation package supports collecting ground truth data of disturbance forces acting on the UAV. When ground truth force data  is unnecessary and the package is solely used for disturbance  estimation, it only requires position information of both the toolbox  MAV and manipulator MAV, which we recommend obtaining through a motion  capture system. For cases requiring ground truth disturbance force  collection, in addition to the aforementioned position data, the package also needs rotor speed information from the toolbox MAV and its  acceleration data. We recommend using a combination of a [T-Motor 501-X motor and ESC integrated kit](https://item.taobao.com/item.htm?_u=a22o13el43d2&id=606577444356&pisk=g1czsB_zQQdrNiZ8EjNFbs5vdWP81W-6xXZQ-203PuqkpzOhT2ugRUKpyxznAmLpy7g3YDobD6aBeHCE00giF8iIFk43mm05NkO8LDusXD1BwYahTmgLKDGEJ6zn-DL8AUpjy4FLtht6TCg-yHSI8Wlzro0mkyslqKwlUIuWlht61BJloW-yfD1Z3KR07PV3rJfhnEzarzV3Ku0Duy4Cq9foxE84yP5hxzqhoI4Lm9q3-zjcmPUGt_4u-Eu0DP5utWm3iEzKgvm-vGagEEjRPXZdWHyuj4qVt1bTq8mw6oChFj4zXO3z0qgjgzyzjJmsgzGoc2cSw-pPEW3jQDknjn67qAzZ0RMyb_oZ2y0U-0RO7ocr8jy-hgXu77rzIbmcWs3aKxl4NbxdBqg4qRPjhKK7d7orBlekHnnEuuina-jyckMslb2qjn1qvJknNSckmCSyaMUmMxlKUMXUErU4fE84Ln01IOT4bXBdp-2gulT8K9BLErU4fE8Vp9eRsrr6yJf..&spm=a1z09.2.0.0.78ef2e8dyWEVzq) and an [ALPHA DATA LINK v2 acquisition system](https://item.taobao.com/item.htm?_u=a22o13el23c8&id=643443876894&pisk=guX4s6m2T-e2Z78viT9Z8Yk81dJvKdzQSOT6jGjMcEY06nwiQGSHfoUTD_-G5aETDKsM7N7WyAt_MPHNzZshGI_1GFxMrajjhFwv_NSCJNM_HstiQas9sN6NXA-GjNEv5oF5Dip9IyaQQJsADPu1bdW2mbcl2himm7Omg8SbVyaQdRPmqdz4RNMFacekYHvMmCDiZu-emnvMsEAu4hxsofDcSuryDHkiSnYiq8x9rfDMoFxkrnKKsVcDSuSkyhkMIdbMEu-tgT_AW2tHiu0xcOTtXAAJ-iYrIvmpoIX7pUMiuTx2JySXz3t5UnR2-CbCUn6cPGXfHQFqidI5TN5G-zGXo6-FzB148x7FkhjwjZyKYUXVbTRANqcDYK82ttbovYIes_Wyht4t9gsyoBJ5N7UX1K7V9ed0wzQN4E_G3Q04PF1CVtAP-zMPWC5GhLX0rJSPTVKle_WOgVcwi3KyRury_zjItXZy8Oht6QAH4eZvsfh9i3KyRurr6fdxK38QDCf..&spm=a1z09.2.0.0.78ef2e8dyWEVzq&skuId=4633424884192) to  acquire rotor speed measurements, while employing an HWT905 IMU for acceleration  data acquisition.
 
 ### Install dependencies & build 
  This package utilizes MATLAB Coder for neural network code generation. For detailed technical specifications, please refer to the documentation at: https://ww2.mathworks.cn/help/coder/deep-learning-code-generation-fundamentals.html?s_tid=CRUX_lftnav. Additionally, the following dependencies must be installed to execute the generated code.
@@ -71,7 +71,7 @@ This package operates on Ubuntu 18.04 or 20.04 systems with both [ROS installed]
 
 This package contains three nodes, whose functionalities and usage methods are described below:
 
-- **disturbance_est**: This node is used for disturbance estimation. Once the motion capture system publishes the pose information of both the MAVs, the node will automatically calculate the magnitude of disturbance forces and torque during docking process.
+- **disturbance_est**: This node is used for disturbance estimation. Once the motion capture system publishes the pose information of both the MAVs, the node will automatically calculate the magnitude of disturbance forces and torque during the docking process.
 
   - Usage:
 
@@ -112,7 +112,7 @@ This package contains three nodes, whose functionalities and usage methods are d
 
     Among these parameters, p1-p4 are derived from the curve fitting results of motor speed versus thrust, while m represents the mass of the toolbox MAV. These parameters require adjustment based on actual operating conditions.
 
-  - Output: Publishes disturbance force and torque ground truth estimates to /disturbance_truth/force and /disturbance_truth/torque respectively.
+  - Output: Publishes disturbance force and torque ground truth estimates to /disturbance_truth/force and /disturbance_truth/torque, respectively.
 
 <hr style="height:2px;border-width:0;color:#ff0000;background-color:#00aaff">
 
@@ -150,7 +150,7 @@ This package utilizes the OpenCV library and Intel RealSense SDK for its core fu
 
   - Output: Publishes the image topic `/camera/realsense`.
 
-- **`cali_camera`**: This node performs camera hand-eye calibration. It requires both a motion capture system and a specially designed calibration target (see diagram below).
+- **`cali_camera`**: This node performs camera hand-eye calibration. It requires both a motion capture system and a specially designed calibration target (see the figure below).
 <div align="center">
   <img src="readme_images\fig_cail.jpg" width="60%">
 </div>
@@ -163,7 +163,7 @@ This package utilizes the OpenCV library and Intel RealSense SDK for its core fu
     rosrun visual_sensing cali_camera
     ```
 
-- **`realsense`**: This node is used to obtain the relative distance information between the upper and lower MAVs. Before using this node, first check and modify the parameters in line 580 of the `realsense.cc` file to ensure the file exists and the path is correct. Copy the calibration results from the previous step into this file. After running `catkin build`, use the following command to perform relative position estimation between the two MAVs.
+- **`realsense`**: This node is used to obtain the relative distance information between the upper and lower MAVs (see the figure below). Before using this node, first check and modify the parameters in line 580 of the `realsense.cc` file to ensure the file exists and the path is correct. Copy the calibration results from the previous step into this file. After running `catkin build`, use the following command to perform relative position estimation between the two MAVs.
 
   - Usage:
 
@@ -206,7 +206,7 @@ catkin build
 
 ### Demo execution
 
-Before running this package, you need task planning result from the task_planning package.
+Before running this package, you need the task planning result from the task_planning package.
 
 Run the following code to launch the trajectory planning.
 
@@ -240,7 +240,7 @@ sudo apt-get install qtdeclarative5-dev
 
 ### Demo execution
 
-Run the following code to launch the QT interface ( see following figure) for task planning.
+Run the following code to launch the QT interface (see the figure below) for task planning.
 
 ```bash
 roslaunch task_planning task_planning.launch
@@ -248,4 +248,4 @@ roslaunch task_planning task_planning.launch
 <div align="center">
 <img src="readme_images\Task_Planning.png" width="60%">
 </div>
-Task Planning Workflow: First, select a MAV ID from the dropdown menu on the right, then click on the visualization interface to set waypoints—each click adds a new waypoint to the table below (where parameters like task type and duration can be modified), with repeated clicks constructing the complete mission sequence. To program additional MAVs, simply select different IDs and repeat the waypoint editing process. After configuring all MAV trajectories, click the Collision Detectionbutton to automatically validate paths and receive conflict alerts. Once collision-free operation is confirmed, click Generate Task to output the multi-MAV coordination configuration file corridor.yaml.
+Task Planning Workflow: First, select a MAV ID from the dropdown menu on the right, then click on the visualization interface to set waypoints—each click adds a new waypoint to the table below (where parameters like task type and duration can be modified), with repeated clicks constructing the complete mission sequence. To program additional MAVs, simply select different IDs and repeat the waypoint editing process. After configuring all MAV trajectories, click the Collision Detection button to automatically validate paths and receive conflict alerts. Once collision-free operation is confirmed, click Generate Task to output the multi-MAV coordination configuration file corridor.yaml.
