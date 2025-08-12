@@ -175,8 +175,10 @@ This package utilizes the OpenCV library and Intel RealSense SDK for its core fu
   - **y**: Determines whether to save real-time images locally. If set to 0, no images are saved. If set to a non-zero value, images are saved to the path specified in line 379 of the `realsense.cc` file.
 
   - Output: Publishes the relative position topic `/tool_box_pos`.
-
+<div align="center">
   <img src="readme_images\fig_docking_with_visual_sensing.jpg" width="60%">
+</div>
+  
 
 <hr style="height:2px;border-width:0;color:#ff0000;background-color:#00aaff">
 
