@@ -222,7 +222,7 @@ roslaunch trajectory_generation trajectory_generation.launch
 
 The source code for disturbance estimation is located in the task_planning folder. This source code is a ROS package named "task_planning".
 
-### System Requirements
+### System requirements
 
 This package operates on Ubuntu 18.04 or 20.04 systems with both [ROS installed](https://wiki.ros.org/ROS/Installation) and [Mavros configured](https://docs.px4.io/v1.14/zh/ros/mavros_installation.html), requiring at least 2GB of RAM. Our testing has verified stable and smooth performance on both an Intel NUC12WSHi5 onboard computer and an NVIDIA Jetson Xavier NX development kit featuring a 6-core NVIDIA Carmel ARMv8.2 64-bit CPU cluster. 
 
