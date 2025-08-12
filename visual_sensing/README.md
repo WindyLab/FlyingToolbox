@@ -34,7 +34,7 @@ catkin build
 
   - Output: Publishes the image topic `/camera/realsense`.
 
-- **`cali_camera`**: This node performs camera hand-eye calibration. It requires both a motion capture system and a specially designed calibration target (see diagram below).
+- **`cali_camera`**: This node performs camera hand-eye calibration. It requires both a motion capture system and a specially designed calibration target (see the figure below).
 
 <div align="center">
   <img src="readme_images\fig_cail.jpg" width="60%">
@@ -49,7 +49,7 @@ catkin build
     rosrun visual_sensing cali_camera
     ```
 
-- **`realsense`**: This node is used to obtain the relative distance information between the upper and lower MAVs. Before using this node, first check and modify the parameters in line 580 of the `realsense.cc` file to ensure the file exists and the path is correct. Copy the calibration results from the previous step into this file. After running `catkin build`, use the following command to perform relative position estimation between the two MAVs.
+- **`realsense`**: This node is used to obtain the relative distance information between the upper and lower MAVs (see the figure below). Before using this node, first check and modify the parameters in line 580 of the `realsense.cc` file to ensure the file exists and the path is correct. Copy the calibration results from the previous step into this file. After running `catkin build`, use the following command to perform relative position estimation between the two MAVs.
 
   - Usage:
 
@@ -66,3 +66,4 @@ catkin build
 <div align="center">
   <img src="readme_images\fig_docking_with_visual_sensing.jpg" width="60%">
 </div>
+
