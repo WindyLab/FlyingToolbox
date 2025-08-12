@@ -1,4 +1,4 @@
-# Disturbance estimation
+# Disturbance Estimation
 
 This package is used for estimating the downwash disturbance received by the lower MAV during vertical-stack proximal cooperation.
 

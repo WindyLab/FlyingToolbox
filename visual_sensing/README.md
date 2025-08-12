@@ -1,4 +1,4 @@
-# visual sensing
+# Visual Sensing
 
 This package is deployed on the manipulator MAV to enable perception of the end-effector tool positions on the toolbox MAV.
 
@@ -66,4 +66,3 @@ catkin build
 <div align="center">
   <img src="readme_images\fig_docking_with_visual_sensing.jpg" width="60%">
 </div>
-

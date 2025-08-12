@@ -1,4 +1,4 @@
-# Trajectory generation
+# Trajectory Generation
 
 This package is used to implement trajectory generation for MAVs. The operation of this package depends on the results from the task_planning package.
 
