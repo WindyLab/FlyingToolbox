@@ -28,6 +28,8 @@ generate_messages(
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
+
+
 catkin_package( CATKIN_DEPENDS std_msgs)
 
 add_executable(cali_camera src/cali_camera.cc src/pose_filter.cc)
@@ -35,7 +37,9 @@ target_link_libraries(cali_camera  ${catkin_LIBRARIES} realsense2::realsense2) #
 
 
 add_executable(realsense src/realsense.cc src/log4z.cpp src/pose_filter.cc)
+add_dependencies(realsense ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(realsense ${catkin_LIBRARIES}) #${OpenCV_LIBS}
+
 
 add_executable(connect_realsense src/connect_realsense.cc)
 target_link_libraries(connect_realsense realsense2::realsense2 ${catkin_LIBRARIES})
