@@ -6,7 +6,7 @@
 
 
 
-This GitHub repository provides open-source materials for *FlyingToolbox*, including mechanical design files and source code for disturbance estimation, visual sensing, trajectory generation, and task planning.  FlyingToolbox is a cooperative aerial manipulation system and consists of a toolbox MAV and a manipulator MAV.  The toolbox MAV carries a toolbox that contains a set of end-effector tools for dedicated tasks such as grasping, cutting, and inspection. The manipulator MAV flies above the toolbox MAV and can autonomously dock with any tool using its robotic arm. After completing a manipulation task, the manipulator MAV can return the tool back to the toolbox MAV or switch to another to perform a different task. 
+This GitHub repository provides open-source materials for *FlyingToolbox*, including mechanical design files and source code for disturbance estimation, visual sensing, trajectory generation, and task planning.  FlyingToolbox is a cooperative aerial manipulation system and consists of a toolbox MAV and a manipulator MAV.  The toolbox MAV carries a toolbox that contains a set of end-effector tools for dedicated tasks such as grasping, cutting, and inspection. The manipulator MAV flies above the toolbox MAV and can autonomously dock with any tool using its robotic arm. After completing a manipulation task, the manipulator MAV can return the tool to the toolbox MAV or switch to another to perform a different task. 
 
 # File Summary
 
@@ -48,7 +48,7 @@ The mechanical_design folder contains the 3D  models of the Toolbox MAV, the Del
 
 <hr style="height:2px;border-width:0;color:#ff0000;background-color:#00aaff">
 
-# 2) Disturbance Dstimation 
+# 2) Disturbance Estimation 
 The source code for disturbance estimation is located in the disturbance_estimation folder. This source code is a ROS package named "disturbance_estimation".
 
 ### System requirements
