@@ -143,7 +143,11 @@ int main(int argc, char** argv) {
   serial_.setPort(port);
   serial_.setBaudrate(baud);
   serial_.setTimeout(to);
-  serial_.open();
+  if (!serial_.isOpen()) {
+    ROS_ERROR("Failed to open serial port: %s", port.c_str());
+    ros::shutdown();
+    return 1;
+  }
 
   ros::Publisher Motor_pub_ =
       nh.advertise<disturbance_estimation::motor_state>("/motor_state", 10);

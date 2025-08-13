@@ -1,14 +1,9 @@
 <launch>
-    <node pkg="disturbance_estimation" type="disturbance_est" name="disturbance_est_node" output="screen"/>
     <node pkg="disturbance_estimation" type="disturbance_est_imu" name="disturbance_est_imu_node" output="screen">
         <param name="p1" type="double" value="-6.939e-7" />
         <param name="p2" type="double" value="3.127e-4" />
         <param name="p3" type="double" value="-0.2451" />
         <param name="p4" type="double" value="1.1122" />
         <param name="m" type="double" value="7.844" />
-    </node>
-    <node name="motor_state_uart_node" pkg="disturbance_estimation" type="motor_state_uart" output="screen">
-        <param name="port" type = "string" value="/dev/ttyUSB0"/>
-        <param name="baud" type = "int" value="115200"/>
     </node>
 </launch>

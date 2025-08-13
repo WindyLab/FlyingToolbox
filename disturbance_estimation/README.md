@@ -30,7 +30,7 @@ This package contains three nodes, whose functionalities and usage methods are d
   - Usage:
 
     ```bash
-    rosrun disturbance_estimation disturbance_est
+    roslaunch disturbance_estimation disturbance_estimation.launch
     ```
 
   - Output: Publishes the disturbance force and torque estimates to `/mavros/disturbance_estimate/force` and `/mavros/disturbance_estimate/torque` respectively.
@@ -40,7 +40,7 @@ This package contains three nodes, whose functionalities and usage methods are d
   - Usage:
 
     ```bash
-    rosrun disturbance_estimation motor_state_uart
+    rosrun disturbance_estimation motor_state_uart _port:="/dev/ttyUSB0" _baud:=115200
     ```
 
     The port number and baud rate may vary, and users need to modify them according to their actual device configuration.
@@ -61,7 +61,7 @@ This package contains three nodes, whose functionalities and usage methods are d
     #    <param name="m" type="double" value="7.844" />
     #</node>
     # Then
-    roslaunch disturbance_estimation start.launch
+    roslaunch disturbance_estimation disturbance_groundtruth.launch
     ```
 
     Among these parameters, p1-p4 are derived from the curve fitting results of motor speed versus thrust, while m represents the mass of the toolbox MAV. These parameters require adjustment based on actual operating conditions.
