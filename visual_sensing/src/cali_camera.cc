@@ -16,7 +16,6 @@
 #include <cv_bridge/cv_bridge.h>
 #include "pose_filter.h"
 
-// 获取当前时间字符串
 std::string GetTimeString() {
     auto now = std::chrono::system_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(now);
@@ -25,7 +24,6 @@ std::string GetTimeString() {
     return std::string(buf);
 }
 
-// 检测棋盘标记并估算相机位姿
 void EstimateCameraPose(const cv::Mat& img, cv::Mat& rotMat, cv::Mat& transVec, bool show = false) {
     auto params = cv::aruco::DetectorParameters::create();
     auto dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
@@ -85,7 +83,6 @@ void EstimateCameraPose(const cv::Mat& img, cv::Mat& rotMat, cv::Mat& transVec, 
     }
 }
 
-// 相机监控类
 class CameraPoseMonitor {
 public:
     CameraPoseMonitor(ros::NodeHandle& nh) : nh_(nh), it_(nh_) {
@@ -191,7 +188,6 @@ private:
     image_transport::Subscriber image_sub_;
 };
 
-// 初始化标记点的三维坐标
 void CameraPoseMonitor::Setup3DPoints() {
     std::map<int, std::vector<cv::Point3f>> pts = {
         {0, {cv::Point3f(-14.5, 14.5, 0), cv::Point3f(14.5, 14.5, 0), cv::Point3f(14.5, -14.5, 0), cv::Point3f(-14.5, -14.5, 0)}},
@@ -235,6 +231,7 @@ int main(int argc, char* argv[]) {
         } catch (tf::TransformException& ex) {
             ROS_ERROR("TF Exception: %s", ex.what());
             tf_ready = false;
+            ros::shutdown();
         }
         if (tf_ready) {
             cv::Mat rotMat(3,3,CV_32FC1), transVec(3,1,CV_32FC1);

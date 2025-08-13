@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.10.0)
 project(visual_sensing)
 set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
 
-
-add_subdirectory(realsense_node)
 find_package(OpenCV REQUIRED) 
 message("=============",${OpenCV_LIBS})
 message("find ${OpenCV_VERSION}")
@@ -27,17 +25,17 @@ generate_messages(
   std_msgs
   sensor_msgs
 )
-
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+)
 catkin_package( CATKIN_DEPENDS std_msgs)
 
 add_executable(cali_camera src/cali_camera.cc src/pose_filter.cc)
 target_link_libraries(cali_camera  ${catkin_LIBRARIES} realsense2::realsense2) #${OpenCV_LIBS}
 
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-  )
-add_executable(realsense src/realsense.cc src/log4z.cpp src/pose_filter.cc)
 
-## Use this on NUC
+add_executable(realsense src/realsense.cc src/log4z.cpp src/pose_filter.cc)
 target_link_libraries(realsense ${catkin_LIBRARIES}) #${OpenCV_LIBS}
 
+add_executable(connect_realsense src/connect_realsense.cc)
+target_link_libraries(connect_realsense realsense2::realsense2 ${catkin_LIBRARIES})

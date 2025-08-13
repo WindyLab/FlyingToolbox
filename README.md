@@ -140,12 +140,12 @@ This package utilizes the OpenCV library and Intel RealSense SDK for its core fu
 
 ### Demo execution
 
-- **`test_realsense`**: This node is designed to capture real-time images from the camera and publish the image data as a ROS topic. Its operation depends on the Intel RealSense camera.
+- **`connect_realsense`**: This node is designed to capture real-time images from the camera and publish the image data as a ROS topic. Its operation depends on the Intel RealSense camera.
 
   - Usage:
 
     ```bash
-    rosrun visual_sensing test_realsense
+    rosrun visual_sensing connect_realsense
     ```
 
   - Output: Publishes the image topic `/camera/realsense`.
