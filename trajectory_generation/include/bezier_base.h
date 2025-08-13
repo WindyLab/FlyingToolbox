@@ -1,3 +1,14 @@
+/**
+ * ===================================================================
+ * This file is derived from the open-source project Btraj by 
+ * HKUST-Aerial-Robotics (Hong Kong University of Science and Technology).
+ * 
+ * Original file: include/bezier_base.h
+ * Source repository: https://github.com/HKUST-Aerial-Robotics/Btraj
+ * License: BSD 3-Clause (see LICENSE file in project root)
+ * ===================================================================
+ */
+
 /*
 This header file is used to provide some basic mathematic support for the Bernstein-basis trajectory generation optimization problem. Includes:
 1-: Mapping matrix maps the coefficients of the Bernstein basis (ie. control points) to Monomial basis. The mapping matrix range from order 3 to order 10

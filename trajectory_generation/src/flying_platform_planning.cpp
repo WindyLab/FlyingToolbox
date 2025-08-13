@@ -31,7 +31,6 @@ void flying_platform_planning::get_pick_task_param(double time_reach, double tim
 void flying_platform_planning::trajectory_out(ros::Time timeNow, path_point& traj_sp)
 {
     trajectory_solver_.trajectory_out(timeNow, traj_sp);
-    // std::cout << i<<std::endl;
 }
 
 void flying_platform_planning::get_objectives(vector<pick_object> obj)

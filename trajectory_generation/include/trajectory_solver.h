@@ -8,7 +8,6 @@
 #include <Eigen/Eigen>
 #include "bezier_base.h"
 #include "mylib.h"
-#include "log4z.h"
 #include "osqp/osqp.h"
 #include "type_define.h"
 #include "trajectory_generation/traj_out_msg.h"

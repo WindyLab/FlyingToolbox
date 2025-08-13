@@ -22,12 +22,6 @@ void trajectory_solver::trajectory_solver_QP()
 {
     get_matrix_quadratic_form();
     get_constraint_QP();
-    // std::cout<<"--------------A_matrix---------------"<<std::endl;
-    // std::cout<<A_matrix_<<std::endl;
-    // std::cout<<"--------------upp_vector_---------------"<<std::endl;
-    // std::cout<<upp_vector_<<std::endl;
-    // std::cout<<"--------------low_vector_---------------"<<std::endl;
-    // std::cout<<low_vector_<<std::endl;
     csc temp_Q;
     matrix_upptriangular(quad_matrix_, quad_matrix_);
     matrix_to_csc trans_mat_csc(quad_matrix_,temp_Q);
@@ -74,7 +68,6 @@ void trajectory_solver::trajectory_solver_QP()
     flag_is_solved = true;
     
     
-    //   path_constraint_.size();
     bezier_3d_.resize(path_constraint_.size());
     ros::Time Now_time = ros::Time::now();
 
@@ -272,8 +265,6 @@ void trajectory_solver::get_constraint_QP()
             Mat_continue(9*i + 6 + j, num) = -1.0/ path_constraint_[i+1].s_scale;
         }
         shit_index += ctrl_3d_num;
-        // std::cout<<"--------------Mat_continue---------------"<<std::endl;
-        // std::cout<<Mat_continue<<std::endl;
     }
     
     row_expansion(A_matrix_, Mat_continue,  A_matrix_);

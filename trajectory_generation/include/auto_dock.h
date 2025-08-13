@@ -3,7 +3,6 @@
 
 #include "type_define.h"
 #include <cstdio>
-#include "end_effector_planning.h"
 #include "std_msgs/String.h"
 #include <std_msgs/Int16.h>
 #include <std_msgs/Bool.h>

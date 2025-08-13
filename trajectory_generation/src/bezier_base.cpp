@@ -1,3 +1,14 @@
+/**
+ * ===================================================================
+ * This file is derived from the open-source project Btraj by 
+ * HKUST-Aerial-Robotics (Hong Kong University of Science and Technology).
+ * 
+ * Original file: src/bezier_base.cpp
+ * Source repository: https://github.com/HKUST-Aerial-Robotics/Btraj
+ * License: BSD 3-Clause (see LICENSE file in project root)
+ * ===================================================================
+ */
+
 #include "bezier_base.h"
 
 MatrixXd Bernstein::CholeskyDecomp(MatrixXd Q) // return square root F of Q; Q = F' * F

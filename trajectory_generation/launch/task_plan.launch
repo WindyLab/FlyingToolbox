@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch> 
+    <node pkg="trajectory_generation" type="traj_solver" name="auto_pick" output="screen">
+        <rosparam command="load" file="$(find trajectory_generation)/launch/corridor.yaml"/>
+        <param name="bezier_order_flying" type="int" value="8"/>
+        <param name="bezier_order_end" type="int" value="12"/>
+        <param name="optimal_order_flying" type="int" value="3"/>
+        <param name="optimal_order_end" type="int" value="3"/>
+    </node>
+</launch>

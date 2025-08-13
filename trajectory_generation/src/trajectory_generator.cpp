@@ -19,7 +19,6 @@ c_float lowerVelocity,c_float upperAccelera,c_float lowerAccelera,c_float x_0,c_
   int _traj_order     = 10;
   
   MatrixXd MQM = _bernstein.getMQM()[_traj_order];
-  // cout << MQM <<endl;
 
   c_float P_var[66];// (n+1)*(n+2)/2
   c_int P_raw[66];// n*(n+1)/2
@@ -96,7 +95,6 @@ c_float lowerVelocity,c_float upperAccelera,c_float lowerAccelera,c_float x_0,c_
     }
   }
   c_float temp2 = _traj_order*(_traj_order-1)/s_scale; 
-  // cout<< "XX:"<< temp2 << "XX" <<endl;
   c_float Aa_var[27];// 3*(n-1)
   c_int Aa_raw[27];
   c_int Aa_con[12];//2*n
@@ -158,23 +156,21 @@ c_float lowerVelocity,c_float upperAccelera,c_float lowerAccelera,c_float x_0,c_
   }
   
  
-  // position + velocity
   c_int C_nzmax;
   c_int C_n;
   c_int C_m;
-  c_float var[31];// _traj_order+1 + 2*_traj_order
+  c_float var[31];
   c_int   p[12];
   c_int ii[31];
    csc_combine( A_mnz, n_x,  m_x, A_con, A_raw,A_var,
-    Av_mnz, nv_x,  mv_x, Av_con, Av_raw,Av_var,
-    C_nzmax,  C_n, C_m, p, ii, var);
-  // csc* CC = csc_matrix(C_m, C_n, C_nzmax, var, ii, p);
+                Av_mnz, nv_x,  mv_x, Av_con, Av_raw,Av_var,
+                C_nzmax,  C_n, C_m, p, ii, var);
 
   // position + velocity + acceleration
   c_int CC_nzmax;
   c_int CC_n;
   c_int CC_m;
-  c_float CCvar[58];// _traj_order+1 + 2*_traj_order + 3*(_traj_order-1) 
+  c_float CCvar[58];
   c_int   CCp[12];
   c_int CCii[58];
   csc_combine( C_nzmax,  C_n, C_m,  p, ii, var,
@@ -357,7 +353,6 @@ c_float lowerVelocity,c_float upperAccelera,c_float lowerAccelera,c_float x_0,c_
     }
   }
   c_float temp2 = _traj_order*(_traj_order-1)/s_scale; 
-  cout<< "XX:"<< temp2 << "XX" <<endl;
   c_float Aa_var[21];// 3*(n-1)
   c_int Aa_raw[21];
   c_int Aa_con[10];//n+2
@@ -429,7 +424,6 @@ c_float lowerVelocity,c_float upperAccelera,c_float lowerAccelera,c_float x_0,c_
    csc_combine( A_mnz, n_x,  m_x, A_con, A_raw,A_var,
     Av_mnz, nv_x,  mv_x, Av_con, Av_raw,Av_var,
     C_nzmax,  C_n, C_m, p, ii, var);
-  // csc* CC = csc_matrix(C_m, C_n, C_nzmax, var, ii, p);
 
   // position + velocity + acceleration
     c_int CC_nzmax;
@@ -469,9 +463,7 @@ c_float lowerVelocity,c_float upperAccelera,c_float lowerAccelera,c_float x_0,c_
     u_a[_traj_order +1] = v_0;
     l_a[2*_traj_order] = v_n;
     u_a[2*_traj_order] = v_n;
-    // vector_show(u_a,24);
-    // csc_show(CC);
-    
+   
     
   
     
@@ -526,7 +518,6 @@ float* trajectory_gen::bezierout(bezier _bezier,ros::Time timeNow){
   VectorXd CaList = _bernstein.getC_a()[_bezier.order];
   static float out[3];
   float t =  (timeNow.toSec() - _bezier.times.toSec())/_bezier.scale;
-  // printf("%f\t",t);
   if (t>1)
   {
     ROS_WARN("Beyond time scope！\n");
@@ -641,3 +632,6 @@ int main(int argc, char *argv[])
   ros::spin();
   return 0;
 }
+
+
+
